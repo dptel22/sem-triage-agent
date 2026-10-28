@@ -1,5 +1,4 @@
 import json
-import random
 import csv
 from pathlib import Path
 
@@ -12,14 +11,14 @@ with open(csv_path, mode="r", encoding="utf-8") as f:
         filename = row["filename"]
         sid = Path(filename).stem
         label = int(row["label"])
-        # Neutral class labels matching exact dataset text (no inferred names)
+        # Neutral ground-truth class labels
         class_names = {
-            1: "class_1",
-            2: "class_2",
-            3: "class_3",
-            4: "class_4",
-            5: "class_5",
-            6: "class_6 (no visible defect)",
+            1: "class_1 (rare)",
+            2: "class_2 (rare)",
+            3: "class_3 (nominal)",
+            4: "class_4 (nominal)",
+            5: "class_5 (rare)",
+            6: "class_6 (no visible defect / SEM misalignment)",
         }
         samples_by_id[sid] = {
             "id": sid,
@@ -40,52 +39,38 @@ with open("results/gate1/splits_manifest.json", "r", encoding="utf-8") as f:
     splits_data = json.load(f)
 splits = splits_data["splits"]
 
-# Rare unseen in Gate 0
-rare_samples = splits["rare_holdout"]
+# Rare eval test (unseen in Gate 0)
+rare_samples = splits["rare_eval_test"]
 rare_c1_unseen = [samples_by_id[s["id"]] for s in rare_samples if s["class_label"] == 1 and s["id"] not in gate0_ids]
 rare_c2_unseen = [samples_by_id[s["id"]] for s in rare_samples if s["class_label"] == 2 and s["id"] not in gate0_ids]
 rare_c5_unseen = [samples_by_id[s["id"]] for s in rare_samples if s["class_label"] == 5 and s["id"] not in gate0_ids]
 
-print(f"Rare C1 unseen count: {len(rare_c1_unseen)}/55")
-print(f"Rare C2 unseen count: {len(rare_c2_unseen)}/8")
-print(f"Rare C5 unseen count: {len(rare_c5_unseen)}/4 (2 seen in Gate 0, exactly 2 remain!)")
-
 # Class 6 empty in class6_test
 c6_test = splits["class6_test"]
 c6_empty = [samples_by_id[s["id"]] for s in c6_test if s["id"] not in gate0_ids]
-print(f"Class 6 in class6_test: {len(c6_empty)}")
 
 # Nominal test
 nom_test = splits["nominal_test"]
 nom_c3 = [samples_by_id[s["id"]] for s in nom_test if s["class_label"] == 3 and s["id"] not in gate0_ids]
 nom_c4 = [samples_by_id[s["id"]] for s in nom_test if s["class_label"] == 4 and s["id"] not in gate0_ids]
-print(f"Nominal C3 in test: {len(nom_c3)}")
-print(f"Nominal C4 in test: {len(nom_c4)}")
 
-# Deterministic selection with seed 42
-random.seed(42)
-sel_c1 = random.choice(rare_c1_unseen)
-sel_c2 = random.choice(rare_c2_unseen)
-sel_c5 = random.choice(rare_c5_unseen)
-sel_c6 = random.choice(c6_empty)
-sel_c3 = random.sample(nom_c3, 4)
-sel_c4 = random.sample(nom_c4, 2)
-
-selected = [
-    ("rare_c1_unseen", sel_c1),
-    ("rare_c2_unseen", sel_c2),
-    ("rare_c5_unseen", sel_c5),
-    ("empty_scan_c6", sel_c6),
-    ("nominal_c3_1", sel_c3[0]),
-    ("nominal_c3_2", sel_c3[1]),
-    ("nominal_c3_3", sel_c3[2]),
-    ("nominal_c3_4", sel_c3[3]),
-    ("nominal_c4_1", sel_c4[0]),
-    ("nominal_c4_2", sel_c4[1]),
+# Preserve exact pre-registered sample IDs:
+pre_registered_ids = [
+    ("rare_c1_unseen", "d1147ea97bb0410487f432a49def8265"),
+    ("rare_c2_unseen", "20cc9526c58743019f12544ca3f6ffee"),
+    ("rare_c5_unseen", "75e64833559e418b8ee5a3760b0b6f21"),
+    ("empty_scan_c6", "404e77708f1649dcb94ce4e692741ed4"),
+    ("nominal_c3_1", "52b03c7a76c340cfb4cb40d2685673f1"),
+    ("nominal_c3_2", "4e27428d290e4c7ebbccae1c93920343"),
+    ("nominal_c3_3", "2dade3ad5e1b4ed3a1c43952dd5c9b6c"),
+    ("nominal_c3_4", "ef3a94a2231d410aa67eeb24f7765f19"),
+    ("nominal_c4_1", "1bf20f9c19b642438dc547aa16f09207"),
+    ("nominal_c4_2", "bdc04b42c49c4ceab2543b56b2a441af"),
 ]
 
 manifest = []
-for role, s in selected:
+for role, sid in pre_registered_ids:
+    s = samples_by_id[sid]
     print(f"Role: {role:<16} | ID: {s['id']} | Class {s['class_label']} ({s['class_name']})")
     manifest.append({
         "role": role,
@@ -101,15 +86,19 @@ for role, s in selected:
 out_path = Path("results/gate1/sharpened_test_10_manifest.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump({
-        "manifest_version": "3.0",
+        "manifest_version": "4.0",
         "seed": 42,
         "purpose": "Pre-registered, frozen 10-sample verification suite for Triage Agent mechanism proof (Conditions C1, C2, C3)",
         "composition": {
-            "unseen_rare_holdout": 3,
+            "unseen_rare_eval_test": 3,
             "empty_scan_class6": 1,
             "nominal_test": 6
         },
-        "taxonomy_note": "Strict neutral class_N labels matching dataset text. class_6 explicitly retains verbatim description 'no visible defect' (SEM tool misalignment). Zero inferred analogies.",
+        "taxonomy_note": (
+            "Neutral ground-truth class labels: class_1 (rare), class_2 (rare), "
+            "class_3 (nominal), class_4 (nominal), class_5 (rare), and "
+            "class_6 (no visible defect / SEM misalignment)."
+        ),
         "samples": manifest
     }, f, indent=2)
 

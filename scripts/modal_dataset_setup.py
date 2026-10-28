@@ -32,7 +32,6 @@ def download_and_mount_carinthia_on_modal():
     import shutil
     import requests
     import zipfile
-    from tqdm import tqdm
 
     target_dir = Path(VOLUME_MOUNT_PATH)
     target_dir.mkdir(parents=True, exist_ok=True)
