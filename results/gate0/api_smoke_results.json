@@ -1,0 +1,17 @@
+{
+  "sam_text_status": "PASS",
+  "sam_text_masks_found": 0,
+  "sam_text_raw": "",
+  "sam_box_status": "PASS",
+  "sam_box_accepted": true,
+  "sam_box_raw": "<0f>1<|box;x1=9;y1=228;x2=254;y2=287;w=480;h=480|><|mask;x=0;y=0;data=60,246,!!!!!VA*{0ohXokL8yJn1B?YjxdLNvFluO!?eRGpk/HX6G2!w)8P9$E9&Kr=-R=7k{|>\n",
+  "sam_crop_status": "PASS",
+  "sam_crop_masks_found": 0,
+  "muse_spark_tool_status": "PASS",
+  "muse_spark_tool_name": "record_defect_triage",
+  "muse_spark_tool_args": {
+    "action": "review",
+    "confidence": 0.65,
+    "morphology_type": "scratch"
+  }
+}

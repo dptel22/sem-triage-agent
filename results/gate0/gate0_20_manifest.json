@@ -1,0 +1,498 @@
+{
+  "dataset_attribution": "Carinthia-S public SEM defect dataset (DOI: 10.5281/zenodo.16895427, CC BY 4.0, single production layer of unstructured wafers)",
+  "total_samples": 20,
+  "quota": {
+    "rare_classes_total": 6,
+    "nominal_classes_total": 14,
+    "class_breakdown": {
+      "1": 2,
+      "2": 2,
+      "3": 7,
+      "4": 6,
+      "5": 2,
+      "6": 1
+    }
+  },
+  "samples": [
+    {
+      "id": "1079519b735f41aabc8e7c642cb5e487",
+      "class_label": 1,
+      "original_image_path": "data/carinthia_s/images/1079519b735f41aabc8e7c642cb5e487.jpg",
+      "original_mask_path": "data/carinthia_s/masks/1079519b735f41aabc8e7c642cb5e487.png",
+      "rgb_png_path": "outputs/gate0/images_png/1079519b735f41aabc8e7c642cb5e487.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        8,
+        228,
+        254,
+        289
+      ],
+      "padded_bbox_xyxy": [
+        0,
+        222,
+        279,
+        295
+      ],
+      "foreground_pixel_count": 651
+    },
+    {
+      "id": "a957d7c6b94a4575af8120fb89572f7a",
+      "class_label": 1,
+      "original_image_path": "data/carinthia_s/images/a957d7c6b94a4575af8120fb89572f7a.jpg",
+      "original_mask_path": "data/carinthia_s/masks/a957d7c6b94a4575af8120fb89572f7a.png",
+      "rgb_png_path": "outputs/gate0/images_png/a957d7c6b94a4575af8120fb89572f7a.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        133,
+        0,
+        479,
+        465
+      ],
+      "padded_bbox_xyxy": [
+        98,
+        0,
+        479,
+        479
+      ],
+      "foreground_pixel_count": 6536
+    },
+    {
+      "id": "2326638fa4b8488da13180531ba50db4",
+      "class_label": 2,
+      "original_image_path": "data/carinthia_s/images/2326638fa4b8488da13180531ba50db4.jpg",
+      "original_mask_path": "data/carinthia_s/masks/2326638fa4b8488da13180531ba50db4.png",
+      "rgb_png_path": "outputs/gate0/images_png/2326638fa4b8488da13180531ba50db4.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        225,
+        0,
+        479,
+        478
+      ],
+      "padded_bbox_xyxy": [
+        200,
+        0,
+        479,
+        479
+      ],
+      "foreground_pixel_count": 4189
+    },
+    {
+      "id": "811a6499bd844091aecd4000549aa060",
+      "class_label": 2,
+      "original_image_path": "data/carinthia_s/images/811a6499bd844091aecd4000549aa060.jpg",
+      "original_mask_path": "data/carinthia_s/masks/811a6499bd844091aecd4000549aa060.png",
+      "rgb_png_path": "outputs/gate0/images_png/811a6499bd844091aecd4000549aa060.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        0,
+        0,
+        479,
+        348
+      ],
+      "padded_bbox_xyxy": [
+        0,
+        0,
+        479,
+        383
+      ],
+      "foreground_pixel_count": 4164
+    },
+    {
+      "id": "0ef66cd9512e4feaa62e4ec3cb75cdc1",
+      "class_label": 5,
+      "original_image_path": "data/carinthia_s/images/0ef66cd9512e4feaa62e4ec3cb75cdc1.jpg",
+      "original_mask_path": "data/carinthia_s/masks/0ef66cd9512e4feaa62e4ec3cb75cdc1.png",
+      "rgb_png_path": "outputs/gate0/images_png/0ef66cd9512e4feaa62e4ec3cb75cdc1.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        211,
+        213,
+        273,
+        257
+      ],
+      "padded_bbox_xyxy": [
+        205,
+        209,
+        279,
+        261
+      ],
+      "foreground_pixel_count": 2255
+    },
+    {
+      "id": "4085455e942a4d3fb413638a5d04d0f7",
+      "class_label": 5,
+      "original_image_path": "data/carinthia_s/images/4085455e942a4d3fb413638a5d04d0f7.jpg",
+      "original_mask_path": "data/carinthia_s/masks/4085455e942a4d3fb413638a5d04d0f7.png",
+      "rgb_png_path": "outputs/gate0/images_png/4085455e942a4d3fb413638a5d04d0f7.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        159,
+        180,
+        326,
+        302
+      ],
+      "padded_bbox_xyxy": [
+        142,
+        168,
+        343,
+        314
+      ],
+      "foreground_pixel_count": 15398
+    },
+    {
+      "id": "46efd26612ce4e0385b80982a8c35cc6",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/46efd26612ce4e0385b80982a8c35cc6.jpg",
+      "original_mask_path": "data/carinthia_s/masks/46efd26612ce4e0385b80982a8c35cc6.png",
+      "rgb_png_path": "outputs/gate0/images_png/46efd26612ce4e0385b80982a8c35cc6.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        241,
+        241,
+        346,
+        302
+      ],
+      "padded_bbox_xyxy": [
+        231,
+        235,
+        356,
+        308
+      ],
+      "foreground_pixel_count": 5147
+    },
+    {
+      "id": "eb8170310b2b4dffbc1f2a4e2e356ca1",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/eb8170310b2b4dffbc1f2a4e2e356ca1.jpg",
+      "original_mask_path": "data/carinthia_s/masks/eb8170310b2b4dffbc1f2a4e2e356ca1.png",
+      "rgb_png_path": "outputs/gate0/images_png/eb8170310b2b4dffbc1f2a4e2e356ca1.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        236,
+        0,
+        479,
+        332
+      ],
+      "padded_bbox_xyxy": [
+        212,
+        0,
+        479,
+        365
+      ],
+      "foreground_pixel_count": 213
+    },
+    {
+      "id": "87fd611deb5a42b9a85187e9ce807706",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/87fd611deb5a42b9a85187e9ce807706.jpg",
+      "original_mask_path": "data/carinthia_s/masks/87fd611deb5a42b9a85187e9ce807706.png",
+      "rgb_png_path": "outputs/gate0/images_png/87fd611deb5a42b9a85187e9ce807706.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        199,
+        157,
+        312,
+        287
+      ],
+      "padded_bbox_xyxy": [
+        188,
+        144,
+        323,
+        300
+      ],
+      "foreground_pixel_count": 9537
+    },
+    {
+      "id": "f919a0abcb0a487783b313063eb6597a",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/f919a0abcb0a487783b313063eb6597a.jpg",
+      "original_mask_path": "data/carinthia_s/masks/f919a0abcb0a487783b313063eb6597a.png",
+      "rgb_png_path": "outputs/gate0/images_png/f919a0abcb0a487783b313063eb6597a.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        214,
+        167,
+        365,
+        262
+      ],
+      "padded_bbox_xyxy": [
+        199,
+        157,
+        380,
+        272
+      ],
+      "foreground_pixel_count": 10811
+    },
+    {
+      "id": "4bcb840b38b247a28c74c696327e4ca2",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/4bcb840b38b247a28c74c696327e4ca2.jpg",
+      "original_mask_path": "data/carinthia_s/masks/4bcb840b38b247a28c74c696327e4ca2.png",
+      "rgb_png_path": "outputs/gate0/images_png/4bcb840b38b247a28c74c696327e4ca2.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        250,
+        191,
+        313,
+        289
+      ],
+      "padded_bbox_xyxy": [
+        244,
+        181,
+        319,
+        299
+      ],
+      "foreground_pixel_count": 4914
+    },
+    {
+      "id": "6fa79cc963614f238e189d881cfb1199",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/6fa79cc963614f238e189d881cfb1199.jpg",
+      "original_mask_path": "data/carinthia_s/masks/6fa79cc963614f238e189d881cfb1199.png",
+      "rgb_png_path": "outputs/gate0/images_png/6fa79cc963614f238e189d881cfb1199.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        151,
+        151,
+        264,
+        256
+      ],
+      "padded_bbox_xyxy": [
+        140,
+        141,
+        275,
+        266
+      ],
+      "foreground_pixel_count": 8578
+    },
+    {
+      "id": "f39b60ee9c0745128ace117c849fa5eb",
+      "class_label": 3,
+      "original_image_path": "data/carinthia_s/images/f39b60ee9c0745128ace117c849fa5eb.jpg",
+      "original_mask_path": "data/carinthia_s/masks/f39b60ee9c0745128ace117c849fa5eb.png",
+      "rgb_png_path": "outputs/gate0/images_png/f39b60ee9c0745128ace117c849fa5eb.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        227,
+        237,
+        254,
+        269
+      ],
+      "padded_bbox_xyxy": [
+        224,
+        234,
+        257,
+        272
+      ],
+      "foreground_pixel_count": 690
+    },
+    {
+      "id": "c76e9b5c674f43cfb0f02361af01a33c",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/c76e9b5c674f43cfb0f02361af01a33c.jpg",
+      "original_mask_path": "data/carinthia_s/masks/c76e9b5c674f43cfb0f02361af01a33c.png",
+      "rgb_png_path": "outputs/gate0/images_png/c76e9b5c674f43cfb0f02361af01a33c.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        223,
+        226,
+        258,
+        257
+      ],
+      "padded_bbox_xyxy": [
+        219,
+        223,
+        262,
+        260
+      ],
+      "foreground_pixel_count": 876
+    },
+    {
+      "id": "0ced545c26d74244818914502372e71e",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/0ced545c26d74244818914502372e71e.jpg",
+      "original_mask_path": "data/carinthia_s/masks/0ced545c26d74244818914502372e71e.png",
+      "rgb_png_path": "outputs/gate0/images_png/0ced545c26d74244818914502372e71e.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        224,
+        0,
+        479,
+        332
+      ],
+      "padded_bbox_xyxy": [
+        198,
+        0,
+        479,
+        365
+      ],
+      "foreground_pixel_count": 503
+    },
+    {
+      "id": "947e5159d35e44d0bf035874f8da9cd1",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/947e5159d35e44d0bf035874f8da9cd1.jpg",
+      "original_mask_path": "data/carinthia_s/masks/947e5159d35e44d0bf035874f8da9cd1.png",
+      "rgb_png_path": "outputs/gate0/images_png/947e5159d35e44d0bf035874f8da9cd1.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        211,
+        215,
+        274,
+        258
+      ],
+      "padded_bbox_xyxy": [
+        205,
+        211,
+        280,
+        262
+      ],
+      "foreground_pixel_count": 2200
+    },
+    {
+      "id": "ecce676ae3bd411d8e6aee3210a497b3",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/ecce676ae3bd411d8e6aee3210a497b3.jpg",
+      "original_mask_path": "data/carinthia_s/masks/ecce676ae3bd411d8e6aee3210a497b3.png",
+      "rgb_png_path": "outputs/gate0/images_png/ecce676ae3bd411d8e6aee3210a497b3.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        112,
+        143,
+        373,
+        341
+      ],
+      "padded_bbox_xyxy": [
+        86,
+        123,
+        399,
+        361
+      ],
+      "foreground_pixel_count": 32907
+    },
+    {
+      "id": "d6d99e9f30ac4c20bf76c8e45ff04dbd",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/d6d99e9f30ac4c20bf76c8e45ff04dbd.jpg",
+      "original_mask_path": "data/carinthia_s/masks/d6d99e9f30ac4c20bf76c8e45ff04dbd.png",
+      "rgb_png_path": "outputs/gate0/images_png/d6d99e9f30ac4c20bf76c8e45ff04dbd.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        194,
+        158,
+        305,
+        265
+      ],
+      "padded_bbox_xyxy": [
+        183,
+        147,
+        316,
+        276
+      ],
+      "foreground_pixel_count": 9063
+    },
+    {
+      "id": "27787478f9ed4760b00579252e90600f",
+      "class_label": 4,
+      "original_image_path": "data/carinthia_s/images/27787478f9ed4760b00579252e90600f.jpg",
+      "original_mask_path": "data/carinthia_s/masks/27787478f9ed4760b00579252e90600f.png",
+      "rgb_png_path": "outputs/gate0/images_png/27787478f9ed4760b00579252e90600f.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        152,
+        113,
+        420,
+        305
+      ],
+      "padded_bbox_xyxy": [
+        125,
+        94,
+        447,
+        324
+      ],
+      "foreground_pixel_count": 42420
+    },
+    {
+      "id": "8b782473c99742e394df74b430412232",
+      "class_label": 6,
+      "original_image_path": "data/carinthia_s/images/8b782473c99742e394df74b430412232.jpg",
+      "original_mask_path": "data/carinthia_s/masks/8b782473c99742e394df74b430412232.png",
+      "rgb_png_path": "outputs/gate0/images_png/8b782473c99742e394df74b430412232.png",
+      "dimensions": {
+        "width": 480,
+        "height": 480
+      },
+      "tight_bbox_xyxy": [
+        203,
+        269,
+        218,
+        276
+      ],
+      "padded_bbox_xyxy": [
+        201,
+        268,
+        220,
+        277
+      ],
+      "foreground_pixel_count": 50
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "mode": "smoke",
+  "fixture": "C:\\Users\\dhruv\\PycharmProjects\\meta\\outputs\\gate0\\images_png\\1079519b735f41aabc8e7c642cb5e487.png",
+  "is_synthetic_fixture": false,
+  "image_size": [
+    480,
+    480
+  ],
+  "box_convention": "inclusive",
+  "ground_truth_box_half_open": [
+    8.0,
+    228.0,
+    254.0,
+    289.0
+  ],
+  "gt_bin_threshold": ">0",
+  "gt_mask_pixels": 651,
+  "models_listed": [
+    "muse-image-1.0",
+    "muse-spark-1.1",
+    "muse-spark-1.2",
+    "muse-spark-1.2-contributor",
+    "muse-spark-1.3",
+    "muse-spark-1.3-contributor",
+    "muse-voice-transcribe-1.0",
+    "muse-wonder-1.0",
+    "sam-3.1"
+  ],
+  "arm1_full_text": {
+    "response_id": "resp_6ae0c9048b95529652694e42",
+    "raw_output_text": "",
+    "n_box_records": 0,
+    "n_mask_records": 0,
+    "boxes_half_open": [],
+    "diagnostics": [],
+    "decode_error": null,
+    "usage": "ResponseUsage(input_tokens=0, input_tokens_details=InputTokensDetails(cache_write_tokens=None, cached_tokens=0), output_tokens=0, output_tokens_details=OutputTokensDetails(reasoning_tokens=0), total_tokens=0, images_processed=1)"
+  },
+  "arm2_full_box": {
+    "wire_prompt": "<0f>1<|box;x1=8;y1=228;x2=254;y2=289;w=480;h=480|>",
+    "response_id": "resp_6ae0c906b5cb43e09c754a71",
+    "raw_output_text": "<0f>1<|box;x1=9;y1=228;x2=254;y2=287;w=480;h=480|><|mask;x=0;y=0;data=60,246,!!!!!VA*{0ohXokL8yJn1B?YjxdLNvFluO!?eRGpk/HX6G2!w)8P9$E9&Kr=-R=7k{|>\n",
+    "n_box_records": 1,
+    "n_mask_records": 1,
+    "diagnostics": [],
+    "decode_error": null,
+    "verdict": "ACCEPTED",
+    "iou": 0.7551020408163265,
+    "dice": 0.8604651162790697
+  },
+  "arm3_cropped_text": {
+    "crop_source": "padded_bbox_xyxy",
+    "crop_box_half_open": [
+      0,
+      222,
+      280,
+      296
+    ],
+    "response_id": "resp_6ae0c909dc9c210c926c45f6",
+    "raw_output_text": "",
+    "n_box_records": 0,
+    "n_mask_records": 0,
+    "diagnostics": [],
+    "decode_error": null
+  },
+  "muse_tool_calling": {
+    "auto": {
+      "response_id": "chatcmpl-01a17e11-6c8f-74d1-8b58-0077805f7074",
+      "finish_reason": "tool_calls",
+      "tool_calls": [
+        {
+          "id": "call_c8ae1752-c7aa-4a56-8a2e-12db65321779",
+          "function": {
+            "arguments": "{\"action\":\"review\",\"confidence\":0.65,\"morphology_type\":\"scratch\"}",
+            "name": "record_defect_triage"
+          },
+          "type": "function"
+        }
+      ],
+      "content": "Faint linear scratch with central particles spotted — logging triage verdict for review.",
+      "usage": "CompletionUsage(completion_tokens=1280, prompt_tokens=950, total_tokens=2230, completion_tokens_details=CompletionTokensDetails(accepted_prediction_tokens=None, audio_tokens=None, reasoning_tokens=1168, rejected_prediction_tokens=None, text_tokens=None), prompt_tokens_details=PromptTokensDetails(audio_tokens=None, cache_write_tokens=None, cached_tokens=113, image_tokens=None, text_tokens=None))"
+    },
+    "verdict": "VALID_TOOL_CALLS with tool_choice=auto"
+  }
+}

@@ -1,0 +1,112 @@
+# Carinthia-S Dataset Description
+# Attribution: Corinna Kofler, Vahidin Hasic, et al.
+# License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+# DOI: 10.5281/zenodo.16895427
+
+Carinthia-S dataset
+Carinthia-S dataset
+Authors
+Affiliations
+Corinna Kofler
+KAI GmbH
+Vahidin Hasić
+University of Sarajevo
+Abstract
+The
+Carinthia-S dataset
+is an enhanced version of the original publicly available Carinthia dataset
+[1]
+, augmented with expert-validated binary segmentation masks for each defect image. It contains Scanning Electron Microscope (SEM) images of defects observed on a single production layer of unstructured semiconductor wafers, along with their corresponding segmentation masks. The dataset comprises 4,591 images, each paired with a segmentation mask, unevenly distributed across six defect classes.
+Table of contents
+Preview of the dataframe
+Class distribution of the Carinthia-S dataset
+Image examples of all defect classes
+Image features
+References
+This work is funded by the Austrian Federal Ministry of Climate Action, Environment, Energy, Mobility, Innovation and Technology, the Austrian Federal Ministry of Digital and Economic Affairs, and implemented by austria wirtschaftsservice (aws) and the Austrian Research Promotion Agency (FFG) in the frame of the Important Project of Common European Interest (IPCEI) on Microelectronics and Communication Technologies (ME/CT).
+The authors also received funding from AIMS5.0 for this work. The project AIMS5.0 is supported by the Chips Joint Undertaking and its members, including the top-up funding by National Funding Authorities from involved countries (FFG project no. FO999899258) under grant agreement no. 101112089. Views and opinions expressed are however those of the authors only and do not necessarily reflect those of the European Union or Chips Joint Undertaking. Neither the European Union nor the Chips Joint Undertaking can be held responsible for them.
+Preview of the dataframe
+Table 1
+provides an overview of the dataframe stored in the file
+carinthia-s.csv
+. The dataframe comprises four columns:
+image_path
+,
+mask_path
+,
+filename
+, and
+label
+, listed from left to right. In total, it contains 4,591 rows.
+The
+image_path
+column specifies the relative paths to the images located in the images directory, while the
+mask_path
+column provides the relative paths to the corresponding mask images stored in the masks directory. The
+filename
+column contains the names of the image files, and the
+label
+column indicates the defect classes associated with each image.
+Number of images in the dataset:  4591
+Number of columns:  4
+Column headers from list(df.columns): ['image_path', 'mask_path', 'filename', 'label']
+Table 1: Preview of the dataset.
+image_path
+mask_path
+filename
+label
+0
+images/2661734b21874fdf9e35a4319a9e7462.jpg
+masks/2661734b21874fdf9e35a4319a9e7462.png
+2661734b21874fdf9e35a4319a9e7462
+6
+1
+images/0c8af9b8e62f4cb498392e806236e5e0.jpg
+masks/0c8af9b8e62f4cb498392e806236e5e0.png
+0c8af9b8e62f4cb498392e806236e5e0
+6
+2
+images/ecb33a23f90b47fe8ee1dfe3e4d5f0df.jpg
+masks/ecb33a23f90b47fe8ee1dfe3e4d5f0df.png
+ecb33a23f90b47fe8ee1dfe3e4d5f0df
+6
+3
+images/adc88a3f9fb34ae79142ba9f12a6f1e1.jpg
+masks/adc88a3f9fb34ae79142ba9f12a6f1e1.png
+adc88a3f9fb34ae79142ba9f12a6f1e1
+6
+4
+images/bc228459f662459f80fbce99bedd9d20.jpg
+masks/bc228459f662459f80fbce99bedd9d20.png
+bc228459f662459f80fbce99bedd9d20
+6
+Class distribution of the Carinthia-S dataset
+Figure 1
+shows the defect class distribution of the
+Carinthia-S
+dataset. The y-axis depicts the six different defect classes and the x-axis the number of images. This bar chart shows that the dataset is highly imbalanced.
+Figure 1: Defect class distribution of the dataset.
+Image examples of all defect classes
+Figure 2
+provides representative examples of all six defect classes. The defect classes are listed in the first column, while the remaining 14 columns display randomly selected example images along with their corresponding masks for each class. For defect class ‘5’, which contains only four images, all available images are shown, leaving the remaining columns blank. In images associated with defect class ‘6’, no visible defects are observed. Such images may arise during production when the SEM tool is misaligned. In these cases, the tool may capture images of regions adjacent to the defect instead of the defect itself.
+Figure 2: Example images of all classes.
+Image features
+This section is directly copied from the original publicly available Carinthia dataset description to maintain consistency. The original dataset description can be found in
+[1]
+.
+The defects are usually in the center of the images and on the right side of the images there is a three-pixel wide black border as visible in the example image in
+Figure 3
+.
+Figure 3: Typical example image of the Carinthia dataset.
+Figure 4
+shows one of the images with a square in the center below the actual defect as an example. Such squares can originate from framing effects induced by electrons during the alignment of the SEM tool.
+Figure 4: Example image with a visible framing effect.
+References
+[1]
+C. Kofler
+et al.
+,
+“Carinthia dataset.”
+Zenodo, Feb. 2024. doi:
+10.5281/zenodo.10715190
+.
