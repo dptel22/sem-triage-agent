@@ -10,6 +10,7 @@ from src.agent.baselines import (
 )
 from src.agent.morphology import compute_defect_morphology
 from src.agent.retrieval import RetrievalBank, RetrievedNeighbor
+from src.agent.triage_agent import extract_interior_points
 from src.agent.verifier import evaluate_empty_scan_gate, verify_sam_mask
 
 
@@ -137,3 +138,34 @@ def test_baselines():
     v3 = b3.evaluate(rare_neighbors, None, is_empty_scan=False)
     assert v3.decision == "DEFER_RARE_REVIEW"
     assert v3.score > 0.50
+
+
+def test_extract_interior_points():
+    # Empty mask
+    empty = np.zeros((50, 50), dtype=np.uint8)
+    assert extract_interior_points(empty) == []
+
+    # Solid 30x30 square centered in 50x50
+    solid = np.zeros((50, 50), dtype=np.uint8)
+    solid[10:40, 10:40] = 1
+    pts = extract_interior_points(solid, max_points=2)
+    assert len(pts) > 0
+    for px, py in pts:
+        # Must be well inside the interior, not on the edges
+        assert 15 <= px <= 35
+        assert 15 <= py <= 35
+
+
+def test_leak_detection_triggers_refinement():
+    # UNet area = 100 px, SAM area = 200 px (> 1.30 ratio)
+    m_unet = np.zeros((100, 100), dtype=np.uint8)
+    m_unet[20:30, 20:30] = 1  # 100 px
+
+    m_sam = np.zeros((100, 100), dtype=np.uint8)
+    m_sam[20:30, 20:40] = 1  # 200 px
+    box = [20, 20, 29, 39]
+
+    verif = verify_sam_mask(m_unet, m_sam, box)
+    assert verif.area_ratio == 2.0
+    assert verif.triggered_refinement is True
+    assert any("leak" in r.lower() or "over-segmentation" in r.lower() for r in verif.trigger_reasons)

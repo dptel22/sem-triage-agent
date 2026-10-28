@@ -138,6 +138,30 @@ class TriageAgentResult:
         return d
 
 
+
+def extract_interior_points(binary_mask: np.ndarray, max_points: int = 2) -> List[Tuple[int, int]]:
+    """Extracts up to max_points interior (x, y) coordinates from a binary mask by iterative erosion."""
+    m = (binary_mask > 0).copy()
+    if m.sum() == 0:
+        return []
+
+    last_m = m.copy()
+    while m.sum() > max_points:
+        last_m = m.copy()
+        # 3x3 4-connectivity erosion
+        eroded = np.zeros_like(m)
+        eroded[1:-1, 1:-1] = (
+            m[1:-1, 1:-1] & m[:-2, 1:-1] & m[2:, 1:-1] & m[1:-1, :-2] & m[1:-1, 2:]
+        )
+        if eroded.sum() == 0:
+            break
+        m = eroded
+
+    pts_arr = np.argwhere(m if m.sum() > 0 else last_m)
+    step = max(1, len(pts_arr) // max_points)
+    selected = pts_arr[::step][:max_points]
+    return [(int(p[1]), int(p[0])) for p in selected]
+
 class VerifiableTriageAgent:
     """Verifiable Multimodal Triage Agent for Industrial SEM defect classification."""
 
@@ -173,11 +197,10 @@ class VerifiableTriageAgent:
             self.unet.load_state_dict(cp)
             self.unet.eval()
 
-    def _predict_unet_mask(self, img_pil: Image.Image) -> np.ndarray:
-        """Locally predicts 480x480 U-Net binary probability mask (prob >= 0.5, border zeroed)."""
+    def _predict_unet_prob(self, img_pil: Image.Image) -> np.ndarray:
+        """Locally predicts 480x480 U-Net continuous probability map (border zeroed)."""
         if self.unet is None:
-            # Fallback if checkpoint missing: empty canvas
-            return np.zeros((480, 480), dtype=np.uint8)
+            return np.zeros((480, 480), dtype=np.float32)
 
         img_arr = np.array(img_pil.convert("L"), dtype=np.float32) / 255.0
         with torch.no_grad():
@@ -185,9 +208,13 @@ class VerifiableTriageAgent:
             logits = self.unet(x)
             prob = torch.sigmoid(logits)[0, 0].cpu().numpy()
 
-        mask = (prob >= 0.5).astype(np.uint8)
-        mask[:, 477:] = 0
-        return mask
+        prob[:, 477:] = 0.0
+        return prob
+
+    def _predict_unet_mask(self, img_pil: Image.Image) -> np.ndarray:
+        """Locally predicts 480x480 U-Net binary mask (prob >= 0.5, border zeroed)."""
+        prob = self._predict_unet_prob(img_pil)
+        return (prob >= 0.5).astype(np.uint8)
 
     def _create_visual_artifacts(
         self,
@@ -320,8 +347,9 @@ class VerifiableTriageAgent:
         by2 = max(0, min(479, int(target_box[3])))
         active_box = [bx1, by1, bx2, by2]
 
-        # Generate local U-Net prediction for GT-free proxy verification
-        m_unet = self._predict_unet_mask(img_pil)
+        # Generate local U-Net continuous prob and binary mask
+        prob_unet = self._predict_unet_prob(img_pil)
+        m_unet = (prob_unet >= 0.5).astype(np.uint8)
 
         # Base64 encode full image for SAM API call
         img_b64 = base64.b64encode(img_p.read_bytes()).decode("ascii")
@@ -361,8 +389,6 @@ class VerifiableTriageAgent:
         refinement_strategy = "none"
 
         if verif.triggered_refinement:
-            refinement_strategy = "composite_box_and_point"
-            # Re-prompt SAM using U-Net core box + positive interior point prompt
             unet_box = unet_pred_entry.get("largest_component_bbox") or active_box
             ux1 = max(0, min(476, int(unet_box[0])))
             uy1 = max(0, min(479, int(unet_box[1])))
@@ -370,47 +396,197 @@ class VerifiableTriageAgent:
             uy2 = max(0, min(479, int(unet_box[3])))
             core_box = [ux1, uy1, ux2, uy2]
 
-            # Interior positive point (centroid of U-Net core box)
-            pt_x = (core_box[0] + core_box[2]) // 2
-            pt_y = (core_box[1] + core_box[3]) // 2
+            sig_components = [
+                c for c in unet_pred_entry.get("component_boxes", [])
+                if c.get("area", 0) >= 64
+            ]
+            r_leak = np.logical_and(m_sam_init == 1, prob_unet < 0.15).astype(np.uint8)
+            leak_area = int(r_leak.sum())
 
-            ref_obj = msp.PromptObject(
-                id=1,
-                prompts=[
-                    msp.FramePrompt(
-                        frame=0,
-                        box=msp.PromptBox(left=core_box[0], top=core_box[1], right=core_box[2] + 1, bottom=core_box[3] + 1),
-                        points=[msp.PromptPoint(x=pt_x, y=pt_y, label="positive")],
-                    )
-                ],
-            )
-            refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
-
-            sam_resp_ref = self.client.responses.create(
-                model="sam-3.1",
-                input=[{
-                    "role": "user",
-                    "content": [
-                        {"type": "input_text", "text": refined_prompt},
-                        {"type": "input_image", "image_url": full_data_url},
+            # Priority 1: If active_box was perturbed/shifted away from U-Net core box -> re-center
+            if active_box != core_box:
+                refinement_strategy = "core_box_recentering"
+                pt_x = (core_box[0] + core_box[2]) // 2
+                pt_y = (core_box[1] + core_box[3]) // 2
+                ref_obj = msp.PromptObject(
+                    id=1,
+                    prompts=[
+                        msp.FramePrompt(
+                            frame=0,
+                            box=msp.PromptBox(left=core_box[0], top=core_box[1], right=core_box[2] + 1, bottom=core_box[3] + 1),
+                            points=[msp.PromptPoint(x=pt_x, y=pt_y, label="positive")],
+                        )
                     ],
-                }],
-            )
-            sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
-            parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
-            if parsed_ref.masks:
-                m_sam_ref = sam_decoder.mask_to_full_canvas(parsed_ref.masks[0], 480, 480)
-                ref_verif = verify_sam_mask(m_unet, m_sam_ref, core_box)
-                refined_iou = ref_verif.unet_sam_iou
-                # Adopt refined mask if agreement improved
-                if refined_iou > init_iou:
-                    m_sam_final = m_sam_ref
-                    final_iou = refined_iou
-                    final_box = core_box
-                    delta_iou_proxy = refined_iou - init_iou
-                    refinement_accepted = True
+                )
+                refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
+                sam_resp_ref = self.client.responses.create(
+                    model="sam-3.1",
+                    input=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": refined_prompt},
+                            {"type": "input_image", "image_url": full_data_url},
+                        ],
+                    }],
+                )
+                sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
+                parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
+                if parsed_ref.masks:
+                    m_sam_ref = sam_decoder.mask_to_full_canvas(parsed_ref.masks[0], 480, 480)
+                    ref_verif = verify_sam_mask(m_unet, m_sam_ref, core_box)
+                    refined_iou = ref_verif.unet_sam_iou
+                    if refined_iou > init_iou:
+                        m_sam_final = m_sam_ref
+                        final_iou = refined_iou
+                        final_box = core_box
+                        delta_iou_proxy = refined_iou - init_iou
+                        refinement_accepted = True
+                    else:
+                        refinement_accepted = False
+
+            # Priority 2: If defect has multiple significant components -> multi-component union
+            elif len(sig_components) >= 2:
+                refinement_strategy = "multi_component_sub_box_union"
+                top_k_boxes = [c["bbox"] for c in sig_components[:3]]
+                objs = [
+                    msp.PromptObject(
+                        id=i + 1,
+                        prompts=[
+                            msp.FramePrompt(
+                                frame=0,
+                                box=msp.PromptBox(
+                                    left=max(0, min(476, int(b[0]))),
+                                    top=max(0, min(479, int(b[1]))),
+                                    right=max(0, min(476, int(b[2]))) + 1,
+                                    bottom=max(0, min(479, int(b[3]))) + 1,
+                                ),
+                            )
+                        ],
+                    )
+                    for i, b in enumerate(top_k_boxes)
+                ]
+                refined_prompt = msp.build_object_prompt(size=(480, 480), objects=objs)
+                sam_resp_ref = self.client.responses.create(
+                    model="sam-3.1",
+                    input=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": refined_prompt},
+                            {"type": "input_image", "image_url": full_data_url},
+                        ],
+                    }],
+                )
+                sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
+                parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
+                if parsed_ref.masks:
+                    m_sam_ref = np.zeros((480, 480), dtype=np.uint8)
+                    for m in parsed_ref.masks:
+                        m_sam_ref = np.logical_or(m_sam_ref, sam_decoder.mask_to_full_canvas(m, 480, 480)).astype(np.uint8)
+                    ref_verif = verify_sam_mask(m_unet, m_sam_ref, active_box)
+                    refined_iou = ref_verif.unet_sam_iou
+                    if refined_iou > init_iou:
+                        m_sam_final = m_sam_ref
+                        final_iou = refined_iou
+                        delta_iou_proxy = refined_iou - init_iou
+                        refinement_accepted = True
+                    else:
+                        refinement_accepted = False
+
+            # Priority 3: If SAM leaked into background -> negative-point carving
+            elif (m_sam_init.sum() > 1.3 * max(1, m_unet.sum()) or init_iou < 0.65) and leak_area >= 32:
+                refinement_strategy = "negative_point_carving"
+                neg_pts = extract_interior_points(r_leak, max_points=2)
+                pos_mask = (prob_unet >= 0.5)
+                if pos_mask.sum() > 0:
+                    py, px = np.unravel_index(np.argmax(prob_unet * pos_mask), prob_unet.shape)
                 else:
-                    refinement_accepted = False
+                    py, px = (active_box[1] + active_box[3]) // 2, (active_box[0] + active_box[2]) // 2
+                pos_pt = (int(px), int(py))
+
+                points_prompt = [msp.PromptPoint(x=pos_pt[0], y=pos_pt[1], label="positive")]
+                for nx, ny in neg_pts:
+                    points_prompt.append(msp.PromptPoint(x=nx, y=ny, label="negative"))
+
+                ref_obj = msp.PromptObject(
+                    id=1,
+                    prompts=[
+                        msp.FramePrompt(
+                            frame=0,
+                            box=msp.PromptBox(
+                                left=active_box[0],
+                                top=active_box[1],
+                                right=active_box[2] + 1,
+                                bottom=active_box[3] + 1,
+                            ),
+                            points=points_prompt,
+                        )
+                    ],
+                )
+                refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
+                sam_resp_ref = self.client.responses.create(
+                    model="sam-3.1",
+                    input=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": refined_prompt},
+                            {"type": "input_image", "image_url": full_data_url},
+                        ],
+                    }],
+                )
+                sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
+                parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
+                if parsed_ref.masks:
+                    m_sam_ref = sam_decoder.mask_to_full_canvas(parsed_ref.masks[0], 480, 480)
+                    ref_verif = verify_sam_mask(m_unet, m_sam_ref, active_box)
+                    refined_iou = ref_verif.unet_sam_iou
+                    if refined_iou > init_iou:
+                        m_sam_final = m_sam_ref
+                        final_iou = refined_iou
+                        delta_iou_proxy = refined_iou - init_iou
+                        refinement_accepted = True
+                    else:
+                        refinement_accepted = False
+
+            # Priority 4: General fallback
+            else:
+                refinement_strategy = "composite_box_and_point"
+                pt_x = (core_box[0] + core_box[2]) // 2
+                pt_y = (core_box[1] + core_box[3]) // 2
+                ref_obj = msp.PromptObject(
+                    id=1,
+                    prompts=[
+                        msp.FramePrompt(
+                            frame=0,
+                            box=msp.PromptBox(left=core_box[0], top=core_box[1], right=core_box[2] + 1, bottom=core_box[3] + 1),
+                            points=[msp.PromptPoint(x=pt_x, y=pt_y, label="positive")],
+                        )
+                    ],
+                )
+                refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
+                sam_resp_ref = self.client.responses.create(
+                    model="sam-3.1",
+                    input=[{
+                        "role": "user",
+                        "content": [
+                            {"type": "input_text", "text": refined_prompt},
+                            {"type": "input_image", "image_url": full_data_url},
+                        ],
+                    }],
+                )
+                sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
+                parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
+                if parsed_ref.masks:
+                    m_sam_ref = sam_decoder.mask_to_full_canvas(parsed_ref.masks[0], 480, 480)
+                    ref_verif = verify_sam_mask(m_unet, m_sam_ref, core_box)
+                    refined_iou = ref_verif.unet_sam_iou
+                    if refined_iou > init_iou:
+                        m_sam_final = m_sam_ref
+                        final_iou = refined_iou
+                        final_box = core_box
+                        delta_iou_proxy = refined_iou - init_iou
+                        refinement_accepted = True
+                    else:
+                        refinement_accepted = False
         else:
             # Locked immediately: monotonicity guardrail guarantees delta_iou = 0.0
             delta_iou_proxy = 0.0

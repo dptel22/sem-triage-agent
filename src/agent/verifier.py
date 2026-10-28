@@ -75,7 +75,7 @@ def verify_sam_mask(
     min_fill_ratio: float = 0.10,
     max_fill_ratio: float = 0.88,
     min_area_ratio: float = 0.35,
-    max_area_ratio: float = 3.0,
+    max_area_ratio: float = 1.30,
 ) -> MaskVerificationResult:
     """Evaluates Condition C1: Deterministic GT-free Mask Verification.
 
