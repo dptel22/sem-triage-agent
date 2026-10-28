@@ -351,7 +351,7 @@ def run_part_b(client, manifest: list[dict], rows: list[dict], skip_api: bool,
         print(f"[{sum(1 for t in trials_out if t['prompt_source'] == 'oracle_box_jitter') // 2}/20] "
               f"{sample_id[:8]} group={group_of(sample_id)} {pair_txt}")
 
-    def stats_for(group: str, key: str, source: str | None = None) -> dict:
+    def stats_for(group: str, key: str, source: str = "oracle_box_jitter") -> dict:
         vals = [t[key] for t in trials_out
                 if (group == "all20" or t["group"] == group)
                 and (source is None or t["prompt_source"] == source) and key in t]
@@ -360,7 +360,7 @@ def run_part_b(client, manifest: list[dict], rows: list[dict], skip_api: bool,
 
     groups = {}
     for g in ("clean14", "corner5", "class6_exception", "all20"):
-        groups[g] = {key: stats_for(g, key)
+        groups[g] = {key: stats_for(g, key, source="oracle_box_jitter")
                      for key in ("iou_gt0", "iou_128", "dice_gt0", "dice_128")}
     # Corner images re-centered on their cleaned LCC boxes, separately.
     groups["corner5_lcc128_jitter"] = {

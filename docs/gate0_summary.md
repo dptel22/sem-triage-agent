@@ -64,31 +64,40 @@ full evidence in `results/gate0/diagnostic_jitter_and_cleaned_boxes.json`
 
 **Cleaned-box re-calls (zeroing `x >= 477`, then `box_thr128` / `box_lcc_gt0` / `box_lcc_128`):**
 
-| Image | class | oracle IoU | best cleaned box | best IoU (gt>0 / gt>=128) |
-|---|---|---|---|---|
-| `a957d7c6` | 1 | 0.034 | box_lcc_gt0 | 0.309 / 0.312 |
-| `2326638f` | 2 | 0.017 | box_thr128 (all identical) | 0.620 / 0.670 |
-| `811a6499` | 2 | 0.014 | box_thr128 (all identical) | 0.664 / 0.719 |
-| `eb817031` | 3 | 0.000 | box_thr128 (all identical) | 0.784 / 0.785 |
-| `0ced545c` | 4 | 0.000 | box_thr128 (all identical) | 0.708 / 0.745 |
-| `8b782473` | 6 | 0.381 | unchanged (identity) | 0.381 / 0.381 |
+| Image | class | oracle IoU | best cleaned box | cleaned box [x1, y1, x2, y2] | best IoU (gt>0 / gt>=128) |
+|---|---|---|---|---|---|
+| `a957d7c6` | 1 | 0.034 | `box_lcc_gt0` | `[283, 157, 424, 336]` | 0.309 / 0.312 |
+| `2326638f` | 2 | 0.017 | `box_thr128` (all identical) | `[225, 0, 246, 478]` | 0.620 / 0.670 |
+| `811a6499` | 2 | 0.014 | `box_thr128` (all identical) | `[0, 138, 476, 346]` | 0.664 / 0.719 |
+| `eb817031` | 3 | 0.000 | `box_thr128` (all identical) | `[236, 234, 248, 252]` | 0.784 / 0.785 |
+| `0ced545c` | 4 | 0.000 | `box_thr128` (all identical) | `[224, 228, 250, 250]` | 0.708 / 0.745 |
+| `8b782473` | 6 | 0.381 | unchanged (identity) | `[203, 269, 218, 276]` | 0.381 / 0.381 |
 
 Border-pixel cleaning rescued 4 of 6 failures into the 0.62–0.78 range; the multi-fragment class-1 defect recovers partially (0.31); the Class 6 small object is unchanged.
 
 ### 5.2 Symmetric ±15% per-edge jitter (Part B, 2 trials/image, seed 42)
 
-| Group (prompt box jittered) | n | median IoU (gt>0) | mean IoU (gt>0) | median Dice |
-|---|---|---|---|---|
-| 14 clean images (oracle box) | 28 | **0.8698** | 0.7999 | 0.9304 |
-| 5 corner images (oracle box) | 10 | 0.2602 | 0.3106 | 0.4122 |
-| 5 corner images (cleaned `box_lcc_128`) | 10 | **0.6020** (0.6547 vs gt>=128) | 0.5874 | 0.7514 |
-| Class 6 exception | 2 | 0.2500 | 0.2500 | 0.4000 |
-| All 20 (oracle box) | 50 | 0.7788 | 0.5822 | 0.8756 |
+*Note: Statistics below strictly separate oracle-box and cleaned-box trials (no pooling).*
 
-**Verdict on the jitter question: `sam-3.1` box-prompting holds up.** The clean-14 median under ±15% jitter (0.8698) is not below the oracle median (0.8572) — the oracle result was not a box artifact. All-20 median is 0.7788 ≥ 0.50 even with the uncleaned oracle boxes; with border-cleaned boxes the corner images also clear 0.50 under jitter.
+| Group (prompt box jittered) | Prompt Box Source | n | median IoU (gt>0) | mean IoU (gt>0) | median Dice |
+|---|---|---|---|---|---|
+| 14 clean images | Oracle box jittered | 28 | **0.8698** | 0.7999 | 0.9304 |
+| 5 corner images | Oracle box jittered | 10 | **0.0029** | 0.0337 | 0.0057 |
+| 5 corner images | Cleaned `box_lcc_128` jittered | 10 | **0.6020** (0.6547 vs gt>=128) | 0.5874 | 0.7514 |
+| Class 6 exception | Oracle box jittered | 2 | 0.2500 | 0.2500 | 0.4000 |
+| All 20 images | Oracle box jittered | 40 | **0.8193** | 0.5809 | 0.9007 |
 
-### 5.3 Actionable pipeline rules (empirically grounded)
+### 5.3 Diagnostic Findings & Threshold Evaluation
 
-1. Zero out the 3px right border (`x >= 477`) before computing any tight bbox from masks or detections.
-2. Prefer the largest-connected-component bbox for prompt construction on this dataset.
-3. Expect multi-fragment (class 1-style) defects and tiny (<100 px) objects to remain the weak cases; route them to the `muse-spark-1.3` triage path rather than expecting pixel-accurate masks.
+1. **Threshold Evaluation**:
+   - On the 14 clean images, the jittered median IoU of **0.8698** clears the proposed $\ge 0.70$ threshold. Compared to their unjittered baseline of **0.8750** (clean-14 median, distinct from the all-20 median of 0.8572), performance is essentially flat ($-0.0052$).
+   - On the corner images, cleaned boxes lift jittered median IoU to **0.6020** (and **0.6547** vs `gt>=128`), clearing the proposed $\ge 0.50$ threshold. This confirms the corner failures were ground-truth box construction artifacts rather than intrinsic SAM-3.1 model failures.
+   - The SAM arm survives for compact defects with high-quality boxes.
+2. **Defect Geometry & Thin/Fragmented Fragility**:
+   - Compact defects (Classes 3, 4, 5) remain resilient under jitter ($0.85$–$0.94$ IoU).
+   - In contrast, thin and multi-fragment defects are fragile: Class 1 sample `1079519b` dropped from $0.7551$ unjittered to $0.0321$ and $0.2964$ under jitter. Similarly, cleaned boxes for Class 1 multi-fragment sample `a957d7c6` only reached $\sim 0.309$. Given that rare-class handling (such as Class 1) is central to the project, thin/fragmented defect segmentation represents a key operational risk.
+3. **Caveat on "Robustness"**:
+   - Synthetic $\pm 15\%$ per-edge jitter around ground-truth boxes tests sensitivity to bounding box margins, but does **not** represent true detector error (which includes false positives, aspect ratio distortion, and center offset). End-to-end viability must be verified using actual predicted bounding boxes from the Gate 1 U-Net baseline.
+4. **Immediate Actionable Pipeline Adjustments**:
+   - Zero out the 3px right border (`x >= 477`) before computing any tight bbox from masks or detections.
+   - Prefer largest-connected-component (`box_lcc_128`) bounding box extraction to avoid spanning stray noise pixels.
