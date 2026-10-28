@@ -45,13 +45,19 @@ def run_evaluation(
     mode: str,
     output_path: Optional[Path] = None,
     triage_model: str = "muse-spark-1.3",
+    api_base_url: Optional[str] = None,
     data_dir: Path | str = "data/carinthia_s",
 ) -> Dict[str, Any]:
     data_p = Path(data_dir)
-    api_key = resolve_api_key()
+    is_open_weights = "open" in triage_model.lower() or "baseten" in str(api_base_url or "").lower()
+
+    try:
+        api_key = resolve_api_key(provider="baseten" if is_open_weights else "meta")
+    except ValueError:
+        api_key = None
 
     print("=" * 80)
-    print(f"WAFERGUARD TRIAGE AGENT EVALUATION — MODE: {mode.upper()}")
+    print(f"WAFERGUARD TRIAGE AGENT EVALUATION — MODE: {mode.upper()} — MODEL: {triage_model}")
     print("=" * 80)
 
     # 1. Load Precomputed Retrieval Bank
@@ -67,6 +73,7 @@ def run_evaluation(
         retrieval_bank=bank,
         unet_model_path=PROJECT_ROOT / "outputs" / "gate1" / "checkpoints" / "best_unet.pt",
         triage_model=triage_model,
+        api_base_url=api_base_url or "https://api.meta.ai/v1",
         api_key=api_key,
     )
 
@@ -188,12 +195,25 @@ def main():
     parser = argparse.ArgumentParser(description="WaferGuard Triage Agent Evaluation Runner.")
     parser.add_argument("--mode", type=str, default="dev-dry-run", choices=["sharpened-10", "official-10", "dev-dry-run", "full"])
     parser.add_argument("--output", type=str, default=None)
-    parser.add_argument("--model", type=str, default="muse-spark-1.3")
+    parser.add_argument(
+        "--triage-model", "--model",
+        dest="triage_model",
+        type=str,
+        default="muse-spark-1.3",
+        help="Triage model: 'muse-spark-1.3' (Meta API) or 'meta-models/muse-spark-open-1026' (Baseten/Modal)",
+    )
+    parser.add_argument("--api-base-url", type=str, default=None, help="Optional custom API base URL")
     parser.add_argument("--data-dir", type=str, default="data/carinthia_s")
     args = parser.parse_args()
 
     out_p = Path(args.output) if args.output else None
-    run_evaluation(mode=args.mode, output_path=out_p, triage_model=args.model, data_dir=args.data_dir)
+    run_evaluation(
+        mode=args.mode,
+        output_path=out_p,
+        triage_model=args.triage_model,
+        api_base_url=args.api_base_url,
+        data_dir=args.data_dir,
+    )
 
 
 if __name__ == "__main__":

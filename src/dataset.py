@@ -23,12 +23,12 @@ except ImportError:  # pragma: no cover
 
 # Exact dataset class definitions (Classes 1-5 active defects; Class 6 empty scan)
 CLASS_NAMES: Dict[int, str] = {
-    1: "ridges",
-    2: "open",
-    3: "nominal_3",
-    4: "pits",
-    5: "delamination",
-    6: "no_defect_reimage",
+    1: "class_1",
+    2: "class_2",
+    3: "class_3",
+    4: "class_4",
+    5: "class_5",
+    6: "class_6 (no visible defect / SEM tool misalignment)",
 }
 
 

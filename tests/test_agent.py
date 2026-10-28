@@ -13,6 +13,7 @@ from src.agent.triage_agent import (
     VerifiableTriageAgent,
     compute_defect_morphology,
     extract_interior_points,
+    resolve_api_key,
 )
 
 
@@ -153,3 +154,17 @@ def test_agent_triage_with_mocked_api(tmp_path):
     assert res.is_empty_scan is False
     assert res.sam_response_id == "mock_sam_resp_123"
     assert res.triage_response_id == "mock_chat_456"
+
+def test_open_weights_provider_routing(monkeypatch):
+    """Verifies API key resolution routes correctly for open-weights providers (Baseten/Modal)."""
+    monkeypatch.delenv("META_API_KEY", raising=False)
+    monkeypatch.delenv("BASETEN_API_KEY", raising=False)
+    monkeypatch.delenv("MODAL_API_KEY", raising=False)
+    monkeypatch.delenv("OPEN_WEIGHTS_API_KEY", raising=False)
+
+    monkeypatch.setenv("BASETEN_API_KEY", "test_baseten_key")
+    assert resolve_api_key(provider="baseten") == "test_baseten_key"
+
+    monkeypatch.delenv("BASETEN_API_KEY", raising=False)
+    monkeypatch.setenv("META_API_KEY", "test_meta_key")
+    assert resolve_api_key(provider="meta") == "test_meta_key"

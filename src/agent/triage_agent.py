@@ -41,8 +41,14 @@ RARE_CLASSES = {1, 2, 5}
 NOMINAL_CLASSES = {3, 4}
 
 
-def resolve_api_key() -> str:
-    """Safely retrieves Meta Model API key without exposing secrets."""
+def resolve_api_key(provider: str = "meta") -> str:
+    """Safely retrieves API key for Meta or open-weights providers (Baseten/Modal) without exposing secrets."""
+    if provider.lower() in ("baseten", "modal", "open"):
+        for env_var in ["BASETEN_API_KEY", "MODAL_API_KEY", "OPEN_WEIGHTS_API_KEY", "META_API_KEY"]:
+            val = os.environ.get(env_var)
+            if val:
+                return val.strip().strip("'").strip('"')
+
     key = os.environ.get("META_API_KEY")
     if key:
         return key.strip().strip("'").strip('"')
@@ -51,12 +57,18 @@ def resolve_api_key() -> str:
     if env_path.exists():
         for line in env_path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
+            if provider.lower() in ("baseten", "modal", "open"):
+                for var_name in ["BASETEN_API_KEY", "MODAL_API_KEY", "OPEN_WEIGHTS_API_KEY"]:
+                    if line.startswith(f"{var_name}=") and not line.startswith("#"):
+                        val = line.split("=", 1)[1].strip().strip("'").strip('"')
+                        if val:
+                            return val
             if line.startswith("META_API_KEY=") and not line.startswith("#"):
                 val = line.split("=", 1)[1].strip()
                 val = val.strip("'").strip('"')
                 if val:
                     return val
-    raise ValueError("META_API_KEY not found in environment or .env file.")
+    raise ValueError(f"No API key found in environment for provider '{provider}'.")
 
 
 # ---------------------------------------------------------------------------
@@ -484,7 +496,14 @@ class VerifiableTriageAgent:
         self.retrieval_bank = retrieval_bank
         self.triage_model = triage_model
         self.api_base_url = api_base_url
-        self.api_key = api_key or (resolve_api_key() if client is None and os.environ.get("META_API_KEY") else "mocked_key")
+        is_open_weights = "open" in triage_model.lower() or "baseten" in str(api_base_url or "").lower()
+        if api_key is None and client is None:
+            try:
+                self.api_key = resolve_api_key(provider="baseten" if is_open_weights else "meta")
+            except ValueError:
+                self.api_key = "mocked_key"
+        else:
+            self.api_key = api_key or "mocked_key"
         self.client = client or openai.OpenAI(api_key=self.api_key, base_url=self.api_base_url, timeout=120.0)
 
         self.b1_evaluator = Baseline1Confidence(confidence_cutoff=0.90)
@@ -809,11 +828,25 @@ class VerifiableTriageAgent:
         cited_evidence = ["Observable agreement above threshold"]
 
         try:
+            system_prompt = (
+                "You are WaferGuard, an expert semiconductor triage agent inspecting an industrial wafer SEM image. "
+                "Analyze the visual defect image, quantitative defect metrics, observable U-Net/SAM mask agreement, "
+                "morphology, and Top-5 retrieved historical exemplars to determine the routing decision: "
+                "ACCEPT_NOMINAL (for standard in-distribution defects like class_3 or class_4), "
+                "DEFER_RARE_REVIEW (for out-of-distribution rare defects like class_1, class_2, class_5, or low-agreement anomalies), or "
+                "NO_DEFECT_REIMAGE (for empty wafer scans). Call commit_triage_decision."
+            )
             llm_resp = self.client.chat.completions.create(
                 model=self.triage_model,
                 messages=[
-                    {"role": "system", "content": "You are WaferGuard, an expert semiconductor triage agent. Call commit_triage_decision."},
-                    {"role": "user", "content": user_prompt},
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": user_prompt},
+                            {"type": "image_url", "image_url": {"url": full_data_url}},
+                        ],
+                    },
                 ],
                 tools=tools,
                 tool_choice="auto",
