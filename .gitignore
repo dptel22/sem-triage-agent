@@ -1,0 +1,34 @@
+# Python & Environment
+__pycache__/
+*.py[cod]
+*.class
+.venv/
+venv/
+env/
+.env
+
+# Model weights & checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Datasets
+data/
+
+# Generated outputs & images
+outputs/
+**/images_png/
+*.png
+*.jpg
+*.jpeg
+
+# IDE & Editor caches
+.idea/
+.vscode/
+.mimosa/
+.zcode/
+.DS_Store
+
+# Tool & cloud caches
+.modal/
+modal_cache/
