@@ -42,6 +42,53 @@ Data sourced directly from `results/gate0/sam_20_results.json`:
 ## 4. Mandatory Caveats
 
 1. **Oracle Bounding Boxes**: The prompt boxes in `box_full` were derived directly from ground-truth masks (oracle boxes). Thus, the median IoU of 0.8572 represents an upper bound for SAM-3.1 segmentation fidelity, not an end-to-end detector-driven result.
-2. **Edge-Touching Defects (Low IoU Failures)**: 5 images scored IoU < 0.04 (specifically sample indices with prompt boxes touching top/right boundaries, e.g. `y1=0` or `x2=479`). In these instances, SAM segmented adjacent border/wafer edge structures rather than the localized defect. Root cause analysis is ongoing.
+2. **Edge-Touching Defects (Low IoU Failures)**: 5 images scored IoU < 0.04 (specifically sample indices with prompt boxes touching top/right boundaries, e.g. `y1=0` or `x2=479`). In these instances, SAM segmented adjacent border/wafer edge structures rather than the localized defect. **Root cause resolved by the follow-up diagnostic — see Section 5.**
 3. **Class 6 Mask Distribution**: The single Class 6 sample included in the 20-image benchmark contains an atypical non-empty mask; 224 of the 227 Class 6 images in the full Carinthia-S dataset possess completely empty masks.
 4. **Tool Calling Sample Size**: Muse Spark 1.3 function calling was evaluated on a single test image during Gate 0 smoke testing.
+
+---
+
+## 5. Gate 0 Follow-Up Diagnostic (Cleaned Boxes & Jitter Sensitivity)
+
+Branch `feat/gate0-diagnostics`; script `scripts/diagnose_failures_and_jitter.py`;
+full evidence in `results/gate0/diagnostic_jitter_and_cleaned_boxes.json`
+(every call retains `response_id` + `raw_output_text`; SHA-256 of all pre-existing
+`results/gate0/*.json` verified identical before and after). 68 live `sam-3.1` calls.
+
+### 5.1 Root cause of the 5 corner-box failures (Part A forensics)
+
+- **3 of 5 failures (`eb817031`, `0ced545c`, `811a6499`) were caused by stray pixels in the 3px right-border artifact, not by soft-mask halo.** Only 1–19 border pixels existed, but they stretched the oracle `tight_bbox_xyxy` from a tiny dense core (e.g. a 13x19 px blob for `eb817031`) across half the image; `sam-3.1` then dutifully segmented the whole boxed region (31–50% of the frame).
+- `2326638f` is a genuine 22px-wide, full-height (y=0..478) thin stripe — a ground-truth-semantics mismatch, not strays.
+- `a957d7c6` is a 10-fragment scattered defect (components 2814/1535/1074/286/228 px); no single box can cover it.
+- The Class 6 exception `8b782473` is a clean 16x8 px, 50-pixel blob — cleaning is the identity; its 0.38 IoU is a small-object precision limit.
+
+**Cleaned-box re-calls (zeroing `x >= 477`, then `box_thr128` / `box_lcc_gt0` / `box_lcc_128`):**
+
+| Image | class | oracle IoU | best cleaned box | best IoU (gt>0 / gt>=128) |
+|---|---|---|---|---|
+| `a957d7c6` | 1 | 0.034 | box_lcc_gt0 | 0.309 / 0.312 |
+| `2326638f` | 2 | 0.017 | box_thr128 (all identical) | 0.620 / 0.670 |
+| `811a6499` | 2 | 0.014 | box_thr128 (all identical) | 0.664 / 0.719 |
+| `eb817031` | 3 | 0.000 | box_thr128 (all identical) | 0.784 / 0.785 |
+| `0ced545c` | 4 | 0.000 | box_thr128 (all identical) | 0.708 / 0.745 |
+| `8b782473` | 6 | 0.381 | unchanged (identity) | 0.381 / 0.381 |
+
+Border-pixel cleaning rescued 4 of 6 failures into the 0.62–0.78 range; the multi-fragment class-1 defect recovers partially (0.31); the Class 6 small object is unchanged.
+
+### 5.2 Symmetric ±15% per-edge jitter (Part B, 2 trials/image, seed 42)
+
+| Group (prompt box jittered) | n | median IoU (gt>0) | mean IoU (gt>0) | median Dice |
+|---|---|---|---|---|
+| 14 clean images (oracle box) | 28 | **0.8698** | 0.7999 | 0.9304 |
+| 5 corner images (oracle box) | 10 | 0.2602 | 0.3106 | 0.4122 |
+| 5 corner images (cleaned `box_lcc_128`) | 10 | **0.6020** (0.6547 vs gt>=128) | 0.5874 | 0.7514 |
+| Class 6 exception | 2 | 0.2500 | 0.2500 | 0.4000 |
+| All 20 (oracle box) | 50 | 0.7788 | 0.5822 | 0.8756 |
+
+**Verdict on the jitter question: `sam-3.1` box-prompting holds up.** The clean-14 median under ±15% jitter (0.8698) is not below the oracle median (0.8572) — the oracle result was not a box artifact. All-20 median is 0.7788 ≥ 0.50 even with the uncleaned oracle boxes; with border-cleaned boxes the corner images also clear 0.50 under jitter.
+
+### 5.3 Actionable pipeline rules (empirically grounded)
+
+1. Zero out the 3px right border (`x >= 477`) before computing any tight bbox from masks or detections.
+2. Prefer the largest-connected-component bbox for prompt construction on this dataset.
+3. Expect multi-fragment (class 1-style) defects and tiny (<100 px) objects to remain the weak cases; route them to the `muse-spark-1.3` triage path rather than expecting pixel-accurate masks.
