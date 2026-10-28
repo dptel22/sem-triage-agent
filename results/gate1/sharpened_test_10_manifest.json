@@ -1,0 +1,113 @@
+{
+  "manifest_version": "2.0",
+  "seed": 42,
+  "purpose": "Pre-registered, frozen 10-sample verification suite for Triage Agent mechanism proof (Conditions C1, C2, C3)",
+  "composition": {
+    "unseen_rare_holdout": 3,
+    "empty_scan_class6": 1,
+    "nominal_test": 6
+  },
+  "verbatim_taxonomy_note": "Uses verbatim dataset descriptions only (class 1: ridges, class 4: pits, class 6: no visible defect; classes 2, 3, 5 numerical). Zero invented category labels.",
+  "samples": [
+    {
+      "role": "rare_c1_unseen",
+      "id": "d1147ea97bb0410487f432a49def8265",
+      "class_label": 1,
+      "class_name": "class_1 (ridges)",
+      "image_path": "images/d1147ea97bb0410487f432a49def8265.jpg",
+      "mask_path": "masks/d1147ea97bb0410487f432a49def8265.png",
+      "filename": "d1147ea97bb0410487f432a49def8265",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "rare_c2_unseen",
+      "id": "20cc9526c58743019f12544ca3f6ffee",
+      "class_label": 2,
+      "class_name": "class_2",
+      "image_path": "images/20cc9526c58743019f12544ca3f6ffee.jpg",
+      "mask_path": "masks/20cc9526c58743019f12544ca3f6ffee.png",
+      "filename": "20cc9526c58743019f12544ca3f6ffee",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "rare_c5_unseen",
+      "id": "75e64833559e418b8ee5a3760b0b6f21",
+      "class_label": 5,
+      "class_name": "class_5",
+      "image_path": "images/75e64833559e418b8ee5a3760b0b6f21.jpg",
+      "mask_path": "masks/75e64833559e418b8ee5a3760b0b6f21.png",
+      "filename": "75e64833559e418b8ee5a3760b0b6f21",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "empty_scan_c6",
+      "id": "404e77708f1649dcb94ce4e692741ed4",
+      "class_label": 6,
+      "class_name": "class_6 (no visible defect / SEM misalignment)",
+      "image_path": "images/404e77708f1649dcb94ce4e692741ed4.jpg",
+      "mask_path": "masks/404e77708f1649dcb94ce4e692741ed4.png",
+      "filename": "404e77708f1649dcb94ce4e692741ed4",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c3_1",
+      "id": "52b03c7a76c340cfb4cb40d2685673f1",
+      "class_label": 3,
+      "class_name": "class_3",
+      "image_path": "images/52b03c7a76c340cfb4cb40d2685673f1.jpg",
+      "mask_path": "masks/52b03c7a76c340cfb4cb40d2685673f1.png",
+      "filename": "52b03c7a76c340cfb4cb40d2685673f1",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c3_2",
+      "id": "4e27428d290e4c7ebbccae1c93920343",
+      "class_label": 3,
+      "class_name": "class_3",
+      "image_path": "images/4e27428d290e4c7ebbccae1c93920343.jpg",
+      "mask_path": "masks/4e27428d290e4c7ebbccae1c93920343.png",
+      "filename": "4e27428d290e4c7ebbccae1c93920343",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c3_3",
+      "id": "2dade3ad5e1b4ed3a1c43952dd5c9b6c",
+      "class_label": 3,
+      "class_name": "class_3",
+      "image_path": "images/2dade3ad5e1b4ed3a1c43952dd5c9b6c.jpg",
+      "mask_path": "masks/2dade3ad5e1b4ed3a1c43952dd5c9b6c.png",
+      "filename": "2dade3ad5e1b4ed3a1c43952dd5c9b6c",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c3_4",
+      "id": "ef3a94a2231d410aa67eeb24f7765f19",
+      "class_label": 3,
+      "class_name": "class_3",
+      "image_path": "images/ef3a94a2231d410aa67eeb24f7765f19.jpg",
+      "mask_path": "masks/ef3a94a2231d410aa67eeb24f7765f19.png",
+      "filename": "ef3a94a2231d410aa67eeb24f7765f19",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c4_1",
+      "id": "1bf20f9c19b642438dc547aa16f09207",
+      "class_label": 4,
+      "class_name": "class_4 (pits)",
+      "image_path": "images/1bf20f9c19b642438dc547aa16f09207.jpg",
+      "mask_path": "masks/1bf20f9c19b642438dc547aa16f09207.png",
+      "filename": "1bf20f9c19b642438dc547aa16f09207",
+      "seen_in_gate0": false
+    },
+    {
+      "role": "nominal_c4_2",
+      "id": "bdc04b42c49c4ceab2543b56b2a441af",
+      "class_label": 4,
+      "class_name": "class_4 (pits)",
+      "image_path": "images/bdc04b42c49c4ceab2543b56b2a441af.jpg",
+      "mask_path": "masks/bdc04b42c49c4ceab2543b56b2a441af.png",
+      "filename": "bdc04b42c49c4ceab2543b56b2a441af",
+      "seen_in_gate0": false
+    }
+  ]
+}

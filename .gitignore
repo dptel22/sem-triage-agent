@@ -13,10 +13,12 @@ env/
 *.ckpt
 
 # Datasets
-data/
+/data
+data
 
 # Generated outputs & images
-outputs/
+/outputs
+outputs
 **/images_png/
 *.png
 *.jpg
