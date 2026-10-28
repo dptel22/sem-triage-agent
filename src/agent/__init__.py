@@ -1,27 +1,43 @@
-"""Agent package for verifiable semiconductor defect triage."""
+"""WaferGuard SEM Defect Triage Agent Package."""
 
-from src.agent.morphology import MorphologyFeatures, compute_defect_morphology
-from src.agent.retrieval import RetrievalBank, RetrievedNeighbor
-from src.agent.verifier import evaluate_empty_scan_gate, verify_sam_mask
-from src.agent.baselines import (
+from src.agent.triage_agent import (
     Baseline1Confidence,
     Baseline2Discordance,
     Baseline3KNNLogistic,
     BaselineVerdict,
+    DefectMorphology,
+    MorphologyFeatures,
+    RetrievalBank,
+    RetrievedNeighbor,
+    TriageAgentResult,
+    VerifiableTriageAgent,
+    compute_defect_morphology,
+    extract_interior_points,
+    resolve_api_key,
 )
-from src.agent.triage_agent import VerifiableTriageAgent, TriageAgentResult
+from src.agent.verifier import (
+    EmptyScanGateResult,
+    MaskVerificationResult,
+    evaluate_empty_scan_gate,
+    verify_sam_mask,
+)
 
 __all__ = [
-    "MorphologyFeatures",
-    "compute_defect_morphology",
-    "RetrievalBank",
-    "RetrievedNeighbor",
-    "evaluate_empty_scan_gate",
-    "verify_sam_mask",
     "Baseline1Confidence",
     "Baseline2Discordance",
     "Baseline3KNNLogistic",
     "BaselineVerdict",
-    "VerifiableTriageAgent",
+    "DefectMorphology",
+    "EmptyScanGateResult",
+    "MaskVerificationResult",
+    "MorphologyFeatures",
+    "RetrievalBank",
+    "RetrievedNeighbor",
     "TriageAgentResult",
+    "VerifiableTriageAgent",
+    "compute_defect_morphology",
+    "evaluate_empty_scan_gate",
+    "extract_interior_points",
+    "resolve_api_key",
+    "verify_sam_mask",
 ]
