@@ -34,3 +34,4 @@ outputs
 # Tool & cloud caches
 .modal/
 modal_cache/
+scratch/

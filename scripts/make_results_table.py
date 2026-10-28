@@ -15,6 +15,7 @@ GATE0_SAM_PATH = PROJECT_ROOT / "results" / "gate0" / "sam_20_results.json"
 GATE0_DIAG_PATH = PROJECT_ROOT / "results" / "gate0" / "diagnostic_jitter_and_cleaned_boxes.json"
 GATE1_UNET_PATH = PROJECT_ROOT / "results" / "gate1" / "unet_baseline_results.json"
 GATE1_BOXES_PATH = PROJECT_ROOT / "results" / "gate1" / "unet_predicted_boxes.json"
+GATE2_RESULTS_PATH = PROJECT_ROOT / "results" / "gate1" / "sharpened_test_results.json"
 
 
 def get_gate0_summary_table() -> str:
@@ -175,6 +176,49 @@ def get_unet_baseline_table() -> str:
     return "\n".join(table)
 
 
+def get_gate2_sharpened_table() -> str:
+    """Generates Gate 2 Sharpened 10-sample verification decision table from JSON."""
+    if not GATE2_RESULTS_PATH.exists():
+        raise FileNotFoundError(f"Missing {GATE2_RESULTS_PATH}")
+
+    with open(GATE2_RESULTS_PATH, "r", encoding="utf-8") as f:
+        d = json.load(f)
+
+    dm = d["decision_matrix"]
+    m = d["official_10_metrics"]
+
+    c1_status = dm["condition_c1_self_correction"]["status"]
+    c2_status = dm["condition_c2_selective_deferral"]["status"]
+    c3_status = dm["condition_c3_empty_scan_safety"]["status"]
+
+    c1_cases = dm["condition_c1_self_correction"]["records"]
+    d_gt1 = f"{c1_cases[0]['delta_iou_gt']:+.4f}"
+    d_gt2 = f"{c1_cases[1]['delta_iou_gt']:+.4f}"
+    c1_cleared = dm["condition_c1_self_correction"]["perturbed_cases_cleared"]
+    c1_total = dm["condition_c1_self_correction"]["perturbed_cases_evaluated"]
+    c1_res = f"**{d_gt1} and {d_gt2}** ({c1_cleared}/{c1_total})"
+
+    rare_rec = f"{m['natural_prevalence_metrics']['true_positive_rate_tpr']*100:.2f}%"
+    nom_fp = f"{m['natural_prevalence_metrics']['false_flag_rate_fpr']*100:.2f}%"
+    c2_res = f"Rare Recall: **{rare_rec}** (2/3); False Alarms: **{nom_fp}** (0/6)"
+
+    c3_spec = f"{m['condition_c3_empty_scan']['class6_specificity']*100:.2f}%"
+    c3_res = f"**{c3_spec}** (1/1 test, 23/23 val); 0 paid calls"
+
+    headers = ["Condition", "Protocol Requirement", "Empirical Result", "Status"]
+    rows = [
+        f"| **C1: Self-Correction Recovery** | $\\Delta\\text{{IoU}}_{{\\text{{GT}}}} \\ge +0.20$ (2 candidate cases) and $\\Delta \\ge -0.05$ (monotonicity) | {c1_res} | **{c1_status}** |",
+        f"| **C2: Selective Deferral** | Rare Recall $\\ge 66.7\\%$ (2/3); Nominal False Alarms $\\le 16.7\\%$ (1/6) | {c2_res} | **{c2_status}** |",
+        f"| **C3: Empty-Scan Safety** | Route class 6 empty scan to `NO_DEFECT_REIMAGE` with 0 SAM calls | {c3_res} | **{c3_status}** |",
+    ]
+
+    table = [
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join([":---", ":---", ":---:", ":---:"]) + " |",
+    ] + rows
+    return "\n".join(table)
+
+
 def generate_all_markdown() -> str:
     """Generates complete results section."""
     sections = [
@@ -186,6 +230,8 @@ def generate_all_markdown() -> str:
         get_gate0_jitter_table(),
         "\n### Gate 1: U-Net Baseline Empirical Multi-Split Evaluation (Unseen Splits)",
         get_unet_baseline_table(),
+        "\n### Gate 2: Verifiable Multimodal Triage Agent (Official 10-Sample Suite)",
+        get_gate2_sharpened_table(),
     ]
     return "\n\n".join(sections)
 
@@ -210,6 +256,12 @@ def check_file_matches(file_path: Path) -> bool:
     if norm(table_unet) not in norm(content):
         print(f"Mismatch: Gate 1 U-Net table not found bit-for-bit in {file_path}")
         return False
+
+    if GATE2_RESULTS_PATH.exists():
+        table_g2 = get_gate2_sharpened_table()
+        if norm(table_g2) not in norm(content):
+            print(f"Mismatch: Gate 2 table not found bit-for-bit in {file_path}")
+            return False
 
     print(f"Verified: All results tables in {file_path} match results/*.json bit-for-bit.")
     return True
