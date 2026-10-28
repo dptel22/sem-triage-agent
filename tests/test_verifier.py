@@ -7,25 +7,25 @@ from src.agent.verifier import evaluate_empty_scan_gate, verify_sam_mask
 
 def test_empty_scan_gate():
     """Verifies Condition C3: Empty-Scan Gate rules and pixel thresholds."""
-    # Class 6 empty scan pattern: no component >= 16px
+    # Class 6 empty scan pattern: no component >= 16px (0 filtered pixels)
     empty_entry = {
         "id": "c6_test",
         "predicted_foreground_pixels_raw": 10,
         "predicted_foreground_pixels_filtered": 0,
         "largest_component_bbox": None,
     }
-    res = evaluate_empty_scan_gate(empty_entry, threshold_pixels=64)
+    res = evaluate_empty_scan_gate(empty_entry, threshold_pixels=16)
     assert res.is_empty is True
-    assert "No connected foreground component" in res.reason
+    assert "Filtered foreground pixels (0) < 16 px" in res.reason
 
-    # Below 64px threshold
+    # Below 16px threshold
     dust_entry = {
         "id": "dust_test",
         "predicted_foreground_pixels_raw": 30,
-        "predicted_foreground_pixels_filtered": 22,
+        "predicted_foreground_pixels_filtered": 8,
         "largest_component_bbox": [472, 471, 476, 477],
     }
-    res_dust = evaluate_empty_scan_gate(dust_entry, threshold_pixels=64)
+    res_dust = evaluate_empty_scan_gate(dust_entry, threshold_pixels=16)
     assert res_dust.is_empty is True
 
     # Valid foreground defect
@@ -35,7 +35,7 @@ def test_empty_scan_gate():
         "predicted_foreground_pixels_filtered": 2400,
         "largest_component_bbox": [200, 200, 280, 280],
     }
-    res_valid = evaluate_empty_scan_gate(valid_entry, threshold_pixels=64)
+    res_valid = evaluate_empty_scan_gate(valid_entry, threshold_pixels=16)
     assert res_valid.is_empty is False
 
 

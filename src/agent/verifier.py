@@ -18,33 +18,25 @@ class EmptyScanGateResult:
 
 def evaluate_empty_scan_gate(
     unet_pred_entry: Dict[str, Any],
-    threshold_pixels: int = 64,
+    threshold_pixels: int = 16,
 ) -> EmptyScanGateResult:
     """Evaluates Condition C3: Deterministic Empty-Scan Gate.
 
     Routes empty or misaligned SEM scans (class 6) directly to
     'NO_DEFECT / REIMAGE_REQUIRED' without calling expensive downstream APIs.
 
-    Tuned on nominal_val (0/430 flagged, min fg = 255) vs class6_val (23/23 flagged).
+    Checks whether filtered foreground (>= 16 px components, x < 477) is 0 pixels / < 16 px.
     """
     filt_px = int(unet_pred_entry.get("predicted_foreground_pixels_filtered", 0))
     raw_px = int(unet_pred_entry.get("predicted_foreground_pixels_raw", 0))
     largest_box = unet_pred_entry.get("largest_component_bbox")
 
-    if largest_box is None:
+    if largest_box is None or filt_px < threshold_pixels:
         return EmptyScanGateResult(
             is_empty=True,
             filtered_fg_pixels=filt_px,
             raw_fg_pixels=raw_px,
-            reason="No connected foreground component survived the area >= 16px filter",
-        )
-
-    if filt_px < threshold_pixels:
-        return EmptyScanGateResult(
-            is_empty=True,
-            filtered_fg_pixels=filt_px,
-            raw_fg_pixels=raw_px,
-            reason=f"Filtered foreground pixels ({filt_px}) < empty-scan threshold ({threshold_pixels})",
+            reason=f"Filtered foreground pixels ({filt_px}) < {threshold_pixels} px (no connected defect component >= 16px)",
         )
 
     return EmptyScanGateResult(

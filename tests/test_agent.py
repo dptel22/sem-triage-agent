@@ -13,6 +13,7 @@ from src.agent.triage_agent import (
     VerifiableTriageAgent,
     compute_defect_morphology,
     extract_interior_points,
+    resolve_api_key,
 )
 
 
@@ -27,30 +28,30 @@ def test_morphology_and_retrieval_loo():
     assert morph.area == 50 * 100
     assert morph.aspect_ratio > 1.5
     vec = morph.to_vector()
-    assert len(vec) == 16
+    assert len(vec) == 18
 
     samples = [
         {"id": "sample_1", "class_label": 3, "box": box, "morphology": morph.to_dict()},
         {"id": "sample_2", "class_label": 1, "box": box, "morphology": morph.to_dict()},
         {"id": "sample_3", "class_label": 4, "box": box, "morphology": morph.to_dict()},
     ]
-    vecs = np.zeros((3, 16), dtype=np.float32)
+    vecs = np.zeros((3, 18), dtype=np.float32)
     vecs[0, :] = 1.0
     vecs[1, :] = 2.0
     vecs[2, :] = 3.0
     bank = RetrievalBank(
         samples=samples,
         vectors=vecs,
-        mean=np.zeros(16, dtype=np.float32),
-        std=np.ones(16, dtype=np.float32),
+        mean=np.zeros(18, dtype=np.float32),
+        std=np.ones(18, dtype=np.float32),
     )
 
     # Without LOO: closest to 1.0 is sample_1
-    top_no_loo = bank.retrieve_top_k(np.ones(16, dtype=np.float32), k=2)
+    top_no_loo = bank.retrieve_top_k(np.ones(18, dtype=np.float32), k=2)
     assert top_no_loo[0].id == "sample_1"
 
     # With LOO excluding sample_1: closest is sample_2
-    top_loo = bank.retrieve_top_k(np.ones(16, dtype=np.float32), k=2, exclude_id="sample_1")
+    top_loo = bank.retrieve_top_k(np.ones(18, dtype=np.float32), k=2, exclude_id="sample_1")
     assert top_loo[0].id == "sample_2"
 
 
@@ -122,9 +123,9 @@ def test_agent_triage_with_mocked_api(tmp_path):
 
     bank = RetrievalBank(
         samples=[],
-        vectors=np.zeros((0, 16), dtype=np.float32),
-        mean=np.zeros(16, dtype=np.float32),
-        std=np.ones(16, dtype=np.float32),
+        vectors=np.zeros((0, 18), dtype=np.float32),
+        mean=np.zeros(18, dtype=np.float32),
+        std=np.ones(18, dtype=np.float32),
     )
 
     agent = VerifiableTriageAgent(
@@ -153,3 +154,17 @@ def test_agent_triage_with_mocked_api(tmp_path):
     assert res.is_empty_scan is False
     assert res.sam_response_id == "mock_sam_resp_123"
     assert res.triage_response_id == "mock_chat_456"
+
+def test_open_weights_provider_routing(monkeypatch):
+    """Verifies API key resolution routes correctly for open-weights providers (Baseten/Modal)."""
+    monkeypatch.delenv("META_API_KEY", raising=False)
+    monkeypatch.delenv("BASETEN_API_KEY", raising=False)
+    monkeypatch.delenv("MODAL_API_KEY", raising=False)
+    monkeypatch.delenv("OPEN_WEIGHTS_API_KEY", raising=False)
+
+    monkeypatch.setenv("BASETEN_API_KEY", "test_baseten_key")
+    assert resolve_api_key(provider="baseten") == "test_baseten_key"
+
+    monkeypatch.delenv("BASETEN_API_KEY", raising=False)
+    monkeypatch.setenv("META_API_KEY", "test_meta_key")
+    assert resolve_api_key(provider="meta") == "test_meta_key"
