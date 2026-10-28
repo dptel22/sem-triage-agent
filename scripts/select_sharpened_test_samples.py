@@ -12,18 +12,19 @@ with open(csv_path, mode="r", encoding="utf-8") as f:
         filename = row["filename"]
         sid = Path(filename).stem
         label = int(row["label"])
+        # Verbatim dataset class labels (no invented analogies)
         class_names = {
-            1: "Particle / Dust (Rare)",
-            2: "Bridge / Short (Rare)",
-            3: "Break / Open (Nominal)",
-            4: "Via Void / Missing Contact (Nominal)",
-            5: "Delamination / Blister (Rare)",
-            6: "SEM Misalignment / Empty (False Alarm)",
+            1: "class_1 (ridges)",
+            2: "class_2",
+            3: "class_3",
+            4: "class_4 (pits)",
+            5: "class_5",
+            6: "class_6 (no visible defect / SEM misalignment)",
         }
         samples_by_id[sid] = {
             "id": sid,
             "class_label": label,
-            "class_name": class_names.get(label, f"Class_{label}"),
+            "class_name": class_names.get(label, f"class_{label}"),
             "image_path": row["image_path"],
             "mask_path": row["mask_path"],
             "filename": filename,
@@ -51,7 +52,6 @@ print(f"Rare C5 unseen count: {len(rare_c5_unseen)}/4 (2 seen in Gate 0, exactly
 
 # Class 6 empty in class6_test
 c6_test = splits["class6_test"]
-# In class6_test, check which ones are empty (all class 6 in class6_test are empty, non-empty was routed to class6_train)
 c6_empty = [samples_by_id[s["id"]] for s in c6_test if s["id"] not in gate0_ids]
 print(f"Class 6 in class6_test: {len(c6_empty)}")
 
@@ -101,7 +101,7 @@ for role, s in selected:
 out_path = Path("results/gate1/sharpened_test_10_manifest.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump({
-        "manifest_version": "1.0",
+        "manifest_version": "2.0",
         "seed": 42,
         "purpose": "Pre-registered, frozen 10-sample verification suite for Triage Agent mechanism proof (Conditions C1, C2, C3)",
         "composition": {
@@ -109,7 +109,8 @@ with open(out_path, "w", encoding="utf-8") as f:
             "empty_scan_class6": 1,
             "nominal_test": 6
         },
+        "verbatim_taxonomy_note": "Uses verbatim dataset descriptions only (class 1: ridges, class 4: pits, class 6: no visible defect; classes 2, 3, 5 numerical). Zero invented category labels.",
         "samples": manifest
     }, f, indent=2)
 
-print(f"\nSaved pre-registered manifest to {out_path} ({out_path.stat().st_size} bytes)")
+print(f"\nSaved updated manifest to {out_path} ({out_path.stat().st_size} bytes)")
