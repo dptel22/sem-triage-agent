@@ -59,6 +59,8 @@ def evaluate_empty_scan_gate(
 class MaskVerificationResult:
     unet_sam_iou: float
     box_fill_ratio: float
+    prompt_box_fill_ratio: float
+    sam_bbox_fill_ratio: float
     area_ratio: float
     triggered_refinement: bool
     trigger_reasons: List[str]
@@ -79,7 +81,8 @@ def verify_sam_mask(
 
     Computes observable agreement proxies between U-Net prediction and SAM mask:
       - unet_sam_iou = IoU(M_unet, M_sam)
-      - box_fill_ratio = Area(M_sam) / Area(Box)
+      - prompt_box_fill_ratio = Area(M_sam ∩ PromptBox) / Area(PromptBox) (strictly in [0, 1])
+      - sam_bbox_fill_ratio = Area(M_sam) / Area(SAM_Tight_BBox) (strictly in [0, 1])
       - area_ratio = Area(M_sam) / max(1, Area(M_unet))
 
     Guarantees monotonicity: if proxies clear all cutoffs, the mask is locked
@@ -98,7 +101,24 @@ def verify_sam_mask(
 
     x1, y1, x2, y2 = [int(v) for v in box]
     box_area = max(1, (x2 - x1 + 1) * (y2 - y1 + 1))
-    box_fill = float(sam_area / box_area)
+
+    # prompt_box_fill_ratio: intersection of SAM mask inside prompt box / box area (strictly <= 1.0)
+    clip_x1, clip_x2 = max(0, min(480, x1)), max(0, min(480, x2 + 1))
+    clip_y1, clip_y2 = max(0, min(480, y1)), max(0, min(480, y2 + 1))
+    sam_in_prompt_box = int(m_sam[clip_y1:clip_y2, clip_x1:clip_x2].sum())
+    prompt_box_fill_ratio = float(min(1.0, max(0.0, sam_in_prompt_box / box_area)))
+
+    # sam_bbox_fill_ratio: Area(M_sam) / Area(Tight BBox of M_sam) (strictly in [0, 1])
+    y_idx, x_idx = np.where(m_sam > 0)
+    if len(y_idx) > 0:
+        sam_bx1, sam_bx2 = int(x_idx.min()), int(x_idx.max())
+        sam_by1, sam_by2 = int(y_idx.min()), int(y_idx.max())
+        sam_box_area = max(1, (sam_bx2 - sam_bx1 + 1) * (sam_by2 - sam_by1 + 1))
+        sam_bbox_fill_ratio = float(min(1.0, max(0.0, sam_area / sam_box_area)))
+    else:
+        sam_bbox_fill_ratio = 0.0
+
+    box_fill = prompt_box_fill_ratio
     area_ratio = float(sam_area / max(1, unet_area))
 
     triggers: List[str] = []
@@ -117,6 +137,8 @@ def verify_sam_mask(
     return MaskVerificationResult(
         unet_sam_iou=unet_sam_iou,
         box_fill_ratio=box_fill,
+        prompt_box_fill_ratio=prompt_box_fill_ratio,
+        sam_bbox_fill_ratio=sam_bbox_fill_ratio,
         area_ratio=area_ratio,
         triggered_refinement=needs_refinement,
         trigger_reasons=triggers,

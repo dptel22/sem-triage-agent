@@ -103,6 +103,8 @@ class TriageAgentResult:
     initial_unet_sam_iou: Optional[float]
     final_unet_sam_iou: Optional[float]
     refinement_triggered: bool
+    refinement_accepted: bool
+    refinement_strategy: str
     refinement_reasons: List[str]
     delta_iou_proxy: float
 
@@ -116,12 +118,20 @@ class TriageAgentResult:
 
     # Telemetry
     sam_response_id: Optional[str]
+    sam_initial_response_id: Optional[str]
+    sam_refined_response_id: Optional[str]
     triage_response_id: Optional[str]
     triage_model: str
     token_usage: Optional[Dict[str, Any]]
 
+    # Full binary masks for outer GT evaluation (excluded from JSON serialization)
+    initial_sam_mask: Optional[np.ndarray] = None
+    final_sam_mask: Optional[np.ndarray] = None
+
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
+        d.pop("initial_sam_mask", None)
+        d.pop("final_sam_mask", None)
         d["baseline1"] = asdict(self.baseline1)
         d["baseline2"] = asdict(self.baseline2)
         d["baseline3"] = asdict(self.baseline3)
@@ -279,6 +289,8 @@ class VerifiableTriageAgent:
                 initial_unet_sam_iou=0.0,
                 final_unet_sam_iou=0.0,
                 refinement_triggered=False,
+                refinement_accepted=False,
+                refinement_strategy="none",
                 refinement_reasons=[],
                 delta_iou_proxy=0.0,
                 baseline1=b1,
@@ -286,9 +298,13 @@ class VerifiableTriageAgent:
                 baseline3=b3,
                 retrieved_neighbors=[],
                 sam_response_id=None,
+                sam_initial_response_id=None,
+                sam_refined_response_id=None,
                 triage_response_id=None,
                 triage_model=self.triage_model,
                 token_usage=None,
+                initial_sam_mask=np.zeros((480, 480), dtype=np.uint8),
+                final_sam_mask=np.zeros((480, 480), dtype=np.uint8),
             )
 
         # -------------------------------------------------------------------
@@ -340,8 +356,12 @@ class VerifiableTriageAgent:
         m_sam_final = m_sam_init
         final_box = active_box
         delta_iou_proxy = 0.0
+        sam_resp_ref_id = None
+        refinement_accepted = False
+        refinement_strategy = "none"
 
         if verif.triggered_refinement:
+            refinement_strategy = "composite_box_and_point"
             # Re-prompt SAM using U-Net core box + positive interior point prompt
             unet_box = unet_pred_entry.get("largest_component_bbox") or active_box
             ux1 = max(0, min(476, int(unet_box[0])))
@@ -376,6 +396,7 @@ class VerifiableTriageAgent:
                     ],
                 }],
             )
+            sam_resp_ref_id = getattr(sam_resp_ref, "id", None)
             parsed_ref = sam_decoder.decode_output_text(getattr(sam_resp_ref, "output_text", "") or "")
             if parsed_ref.masks:
                 m_sam_ref = sam_decoder.mask_to_full_canvas(parsed_ref.masks[0], 480, 480)
@@ -387,6 +408,9 @@ class VerifiableTriageAgent:
                     final_iou = refined_iou
                     final_box = core_box
                     delta_iou_proxy = refined_iou - init_iou
+                    refinement_accepted = True
+                else:
+                    refinement_accepted = False
         else:
             # Locked immediately: monotonicity guardrail guarantees delta_iou = 0.0
             delta_iou_proxy = 0.0
@@ -514,6 +538,8 @@ class VerifiableTriageAgent:
             initial_unet_sam_iou=init_iou,
             final_unet_sam_iou=final_iou,
             refinement_triggered=verif.triggered_refinement,
+            refinement_accepted=refinement_accepted,
+            refinement_strategy=refinement_strategy,
             refinement_reasons=verif.trigger_reasons,
             delta_iou_proxy=delta_iou_proxy,
             baseline1=b1,
@@ -521,7 +547,11 @@ class VerifiableTriageAgent:
             baseline3=b3,
             retrieved_neighbors=[asdict(n) for n in neighbors],
             sam_response_id=sam_resp_id,
+            sam_initial_response_id=sam_resp_id,
+            sam_refined_response_id=sam_resp_ref_id,
             triage_response_id=triage_resp_id,
             triage_model=self.triage_model,
             token_usage=token_usage,
+            initial_sam_mask=m_sam_init,
+            final_sam_mask=m_sam_final,
         )

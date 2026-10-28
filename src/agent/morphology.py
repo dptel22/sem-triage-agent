@@ -73,7 +73,10 @@ def compute_defect_morphology(
     bw = max(1, x2 - x1 + 1)
     bh = max(1, y2 - y1 + 1)
     box_area = bw * bh
-    box_fill = float(area / max(1, box_area))
+    clip_x1, clip_x2 = max(0, min(480, x1)), max(0, min(480, x2 + 1))
+    clip_y1, clip_y2 = max(0, min(480, y1)), max(0, min(480, y2 + 1))
+    defect_in_box = int(mask_bin[clip_y1:clip_y2, clip_x1:clip_x2].sum())
+    box_fill = float(min(1.0, max(0.0, defect_in_box / box_area)))
     aspect_ratio = float(bw / max(1, bh))
     log_area = float(math.log(1.0 + area))
 

@@ -1,0 +1,3332 @@
+{
+  "metadata": {
+    "suite": "sharpened-10-sample-verification",
+    "frozen_manifest_sha256": "9A2F2A0AC24ABF81DED4E9E30A7046DD05E1E53974969D532F51AAC0501D90DB",
+    "triage_model": "muse-spark-1.3",
+    "api_base_url": "https://api.meta.ai/v1",
+    "timestamp": "2026-10-28"
+  },
+  "decision_matrix": {
+    "condition_c1_self_correction": {
+      "status": "PASS",
+      "threshold": "delta_iou_gt >= +0.20 on candidate cases & delta_iou_gt >= -0.05 on initial >= 0.80",
+      "perturbed_cases_evaluated": 2,
+      "perturbed_cases_cleared": 2,
+      "monotonicity_cases_evaluated": 7,
+      "monotonicity_cases_cleared": 7,
+      "records": [
+        {
+          "id": "52b03c7a76c340cfb4cb40d2685673f1",
+          "role": "nominal_c3_1_perturbed",
+          "iou_gt_initial": 0.0513,
+          "iou_gt_final": 0.8518,
+          "delta_iou_gt": 0.8005,
+          "delta_iou_proxy": 0.7145,
+          "refinement_triggered": true,
+          "refinement_accepted": true,
+          "refinement_strategy": "composite_box_and_point",
+          "sam_initial_response_id": "resp_6ae1ae5c50f52a4975834893",
+          "sam_refined_response_id": "resp_6ae1ae5c9708a5091fe74910"
+        },
+        {
+          "id": "1bf20f9c19b642438dc547aa16f09207",
+          "role": "nominal_c4_1_perturbed",
+          "iou_gt_initial": 0.0326,
+          "iou_gt_final": 0.8334,
+          "delta_iou_gt": 0.8008,
+          "delta_iou_proxy": 0.6805,
+          "refinement_triggered": true,
+          "refinement_accepted": true,
+          "refinement_strategy": "composite_box_and_point",
+          "sam_initial_response_id": "resp_6ae1ae632836653d724f4c91",
+          "sam_refined_response_id": "resp_6ae1ae65c7e91df554e647c4"
+        }
+      ]
+    },
+    "condition_c2_selective_deferral": {
+      "status": "PASS",
+      "rare_recall": 0.6667,
+      "rare_recall_threshold": ">= 0.6667 (>= 2/3 rare holdout)",
+      "nominal_false_flag_rate": 0.0,
+      "nominal_false_flag_ceiling": "<= 0.3334 (<= 2/6 nominal)",
+      "enriched_precision": 1.0,
+      "natural_precision_1_5pct": 1.0
+    },
+    "condition_c3_empty_scan_safety": {
+      "status": "PASS",
+      "class6_specificity": 1.0,
+      "threshold": "1.0000 (100% empty scan bypass, 0 SAM calls)"
+    },
+    "overall_verifiable_verdict": "PASS"
+  },
+  "official_10_metrics": {
+    "confusion_matrix": {
+      "tp_rare": 2,
+      "fp_rare": 0,
+      "fn_rare": 1,
+      "tn_nominal": 6,
+      "fp_nominal": 0,
+      "c6_correct": 1,
+      "c6_total": 1
+    },
+    "enriched_metrics": {
+      "precision": 1.0,
+      "recall": 0.6667,
+      "f1_score": 0.8
+    },
+    "natural_prevalence_metrics": {
+      "assumed_rare_base_rate": 0.015,
+      "true_positive_rate_tpr": 0.6667,
+      "false_flag_rate_fpr": 0.0,
+      "natural_precision": 1.0
+    },
+    "condition_c3_empty_scan": {
+      "class6_specificity": 1.0,
+      "correct": 1,
+      "total": 1
+    }
+  },
+  "all_evaluation_entries": [
+    {
+      "image_id": "d1147ea97bb0410487f432a49def8265",
+      "decision": "DEFER_RARE_REVIEW",
+      "confidence": 0.78,
+      "rationale": "Large elongated filamentary streak with low fill is morphologically inconsistent with small compact nominal class_3/4 variations and nearest-matches large-area class_1 rare defect, with rare majority in top-5. Requires human review for anomalous scratch-like defect despite U-Net nominal vote.",
+      "cited_evidence": [
+        "Rank #1 nearest neighbor is class_1 (rare) at d=3.72, clearly closer than nearest nominal class_3 at d=4.50",
+        "Query area 20237px matches class_1 exemplars 28171px and 14141px vs class_3 exemplars ~1491px and 1468px (~14x smaller)",
+        "Elongated irregular morphology: aspect ratio 2.46 with low box fill 0.31 and forked tail, consistent with scratch/contamination not compact nominal particle",
+        "Top-5 contains 3/5 rare morphologies (2x class_1 + 1x class_2 including top-2 ranks)",
+        "k-NN & Logistic scorer P(rare)=0.506 DEFER_RARE_REVIEW, outweighing overconfident U-Net ACCEPT_NOMINAL",
+        "Mask quality reliable: U-Net/SAM proxy IoU 0.795 discordance 0.205, mean intensity 0.38"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        76,
+        141,
+        476,
+        303
+      ],
+      "refined_box": [
+        76,
+        141,
+        476,
+        303
+      ],
+      "initial_unet_sam_iou": 0.7951243739911428,
+      "final_unet_sam_iou": 0.7951243739911428,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.20487562600885723,
+        "details": {
+          "unet_sam_iou": 0.7951243739911428,
+          "discordance": 0.20487562600885723,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "DEFER_RARE_REVIEW",
+        "score": 0.5056964729419184,
+        "details": {
+          "p_knn_rare": 0.6222,
+          "p_lr_rare": 0.3891,
+          "p_combined": 0.5057,
+          "top5_classes": [
+            "class_1",
+            "class_2",
+            "class_3",
+            "class_1",
+            "class_3"
+          ],
+          "top5_dists": [
+            3.7175,
+            4.2691,
+            4.4983,
+            4.7072,
+            4.7132
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "434a4fab1a67484f81e929a5f37c5300",
+          "class_label": 1,
+          "class_name": "class_1",
+          "distance": 3.7175352573394775,
+          "box": [
+            0,
+            179,
+            476,
+            322
+          ],
+          "morphology": {
+            "area": 28171,
+            "box_area": 68688,
+            "box_fill_ratio": 0.4101298625669695,
+            "aspect_ratio": 3.3125,
+            "log_area": 10.246083855865301,
+            "norm_centroid_x": 0.49545254872031524,
+            "norm_centroid_y": 0.5084446327783891,
+            "crop_mean_intensity": 0.39068323373794556,
+            "crop_std_intensity": 0.03306736424565315,
+            "contrast": 0.0021248161792755127,
+            "hist_8": [
+              0.0,
+              0.0008519398317418756,
+              0.2508607829549931,
+              0.7482161572273023,
+              7.099498597848963e-05,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "811a6499bd844091aecd4000549aa060",
+          "class_label": 2,
+          "class_name": "class_2",
+          "distance": 4.269063949584961,
+          "box": [
+            0,
+            138,
+            476,
+            346
+          ],
+          "morphology": {
+            "area": 3633,
+            "box_area": 99693,
+            "box_fill_ratio": 0.0364418765610424,
+            "aspect_ratio": 2.2822966507177034,
+            "log_area": 8.198089248956116,
+            "norm_centroid_x": 0.47672492889255896,
+            "norm_centroid_y": 0.49988301679053126,
+            "crop_mean_intensity": 0.36089444160461426,
+            "crop_std_intensity": 0.06584491580724716,
+            "contrast": 0.043757110834121704,
+            "hist_8": [
+              0.0,
+              0.1007431748554929,
+              0.31076241642582375,
+              0.588494283718699,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "274ecc4fd77f4ca7b0743a558118ae5c",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 4.498284816741943,
+          "box": [
+            229,
+            169,
+            476,
+            248
+          ],
+          "morphology": {
+            "area": 1491,
+            "box_area": 19840,
+            "box_fill_ratio": 0.07515120967741935,
+            "aspect_ratio": 3.1,
+            "log_area": 7.307872780763706,
+            "norm_centroid_x": 0.7568326626425218,
+            "norm_centroid_y": 0.4225016767270288,
+            "crop_mean_intensity": 0.37782251834869385,
+            "crop_std_intensity": 0.04813612252473831,
+            "contrast": 0.02532920241355896,
+            "hist_8": [
+              0.0,
+              0.022132794014084856,
+              0.3085177347417889,
+              0.6686786555164425,
+              0.0006706907276995411,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "65dec6457eb447ce9f34d51834cf7e94",
+          "class_label": 1,
+          "class_name": "class_1",
+          "distance": 4.7072038650512695,
+          "box": [
+            0,
+            171,
+            476,
+            469
+          ],
+          "morphology": {
+            "area": 14141,
+            "box_area": 142623,
+            "box_fill_ratio": 0.09914950604040021,
+            "aspect_ratio": 1.5953177257525084,
+            "log_area": 9.556904372164187,
+            "norm_centroid_x": 0.5024482591990194,
+            "norm_centroid_y": 0.4878160137189732,
+            "crop_mean_intensity": 0.36164677143096924,
+            "crop_std_intensity": 0.05150708183646202,
+            "contrast": 0.03578343987464905,
+            "hist_8": [
+              0.0,
+              0.003606533740541744,
+              0.5510217824764955,
+              0.44523012608727097,
+              0.00014143269570751935,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "7ed86c617e034c14b8cb854d2d7485a4",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 4.713191986083984,
+          "box": [
+            0,
+            120,
+            421,
+            294
+          ],
+          "morphology": {
+            "area": 1468,
+            "box_area": 73850,
+            "box_fill_ratio": 0.01987813134732566,
+            "aspect_ratio": 2.4114285714285715,
+            "log_area": 7.292337176173877,
+            "norm_centroid_x": 0.47123353769300635,
+            "norm_centroid_y": 0.4877270663033606,
+            "crop_mean_intensity": 0.37474489212036133,
+            "crop_std_intensity": 0.06366100907325745,
+            "contrast": 0.01882442831993103,
+            "hist_8": [
+              0.0,
+              0.050408713044959925,
+              0.32084464654292055,
+              0.6260217201124076,
+              0.002724795299727563,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae18cb934a37d3c34d85",
+      "sam_initial_response_id": "resp_6ae1ae18cb934a37d3c34d85",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-3847-70f3-ad28-3c56ee930f2e",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1993,
+        "prompt_tokens": 1443,
+        "total_tokens": 3436,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1602,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 1,
+      "role": "rare_c1_unseen",
+      "perturbed": false,
+      "iou_gt_initial": 0.5765,
+      "iou_gt_final": 0.5765,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.7951,
+      "iou_proxy_final": 0.7951
+    },
+    {
+      "image_id": "20cc9526c58743019f12544ca3f6ffee",
+      "decision": "DEFER_RARE_REVIEW",
+      "confidence": 0.82,
+      "rationale": "Query is a long thin diagonal scratch with extreme elongation and low fill, morphologically inconsistent with compact nominal class_3 particles. Closest visual analog is class_1 scratch exemplar. Moderate mask agreement indicates uncertainty on thin structure. Per protocol, rare linear scratch requires human review.",
+      "cited_evidence": [
+        "Query AR 0.38 (w/h) and Box Fill 0.06 indicate thin linear scratch spanning box [162,74,300,443] with area 2876px",
+        "Visual match to Rank #3 exemplar 65dec645 class_1 (d=3.642) showing long diagonal linear scratch morphology",
+        "Mismatch to Rank #1, #2, #4, #5 class_3 exemplars (AR 0.96-1.45) which are compact particles/blobs, not elongated lines",
+        "U-Net/SAM Proxy IoU 0.632 / discordance 0.368 triggering Baseline 2 DEFER_RARE_REVIEW",
+        "Baseline 1 ACCEPT_NOMINAL max_prob=0.981 discounted as overconfident on OOD linear structure; Baseline 3 P(rare)=0.128 driven by embedding majority vote"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        162,
+        74,
+        300,
+        443
+      ],
+      "refined_box": [
+        162,
+        74,
+        300,
+        443
+      ],
+      "initial_unet_sam_iou": 0.6033392360232734,
+      "final_unet_sam_iou": 0.6318505775374785,
+      "refinement_triggered": true,
+      "refinement_accepted": true,
+      "refinement_strategy": "composite_box_and_point",
+      "refinement_reasons": [
+        "U-Net/SAM mask agreement 0.6033 < 0.65",
+        "Box fill ratio 0.0499 < 0.1 (box under-filled or hollow)"
+      ],
+      "delta_iou_proxy": 0.0285,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.9805,
+        "details": {
+          "max_prob": 0.9805,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "DEFER_RARE_REVIEW",
+        "score": 0.36814942246252147,
+        "details": {
+          "unet_sam_iou": 0.6318505775374785,
+          "discordance": 0.36814942246252147,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.12841742828025796,
+        "details": {
+          "p_knn_rare": 0.2008,
+          "p_lr_rare": 0.056,
+          "p_combined": 0.1284,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_1",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            3.547,
+            3.5599,
+            3.6417,
+            3.6627,
+            3.8934
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "82955235a45b4bbdac494f2185e4c385",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 3.546971082687378,
+          "box": [
+            142,
+            145,
+            248,
+            255
+          ],
+          "morphology": {
+            "area": 364,
+            "box_area": 11877,
+            "box_fill_ratio": 0.030647469899806348,
+            "aspect_ratio": 0.963963963963964,
+            "log_area": 5.8998973535824915,
+            "norm_centroid_x": 0.4466632326007326,
+            "norm_centroid_y": 0.4541723901098901,
+            "crop_mean_intensity": 0.3363930284976959,
+            "crop_std_intensity": 0.07010971009731293,
+            "contrast": 0.06562381982803345,
+            "hist_8": [
+              0.0,
+              0.10439559134615549,
+              0.557692237980778,
+              0.33791204567308225,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "91b7512f900f453782b77669a90b6a5b",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 3.55985689163208,
+          "box": [
+            210,
+            207,
+            278,
+            278
+          ],
+          "morphology": {
+            "area": 1325,
+            "box_area": 4968,
+            "box_fill_ratio": 0.26670692431562,
+            "aspect_ratio": 0.9583333333333334,
+            "log_area": 7.189922170745808,
+            "norm_centroid_x": 0.49270911949685536,
+            "norm_centroid_y": 0.4949182389937107,
+            "crop_mean_intensity": 0.32834333181381226,
+            "crop_std_intensity": 0.07821714133024216,
+            "contrast": 0.06155508756637573,
+            "hist_8": [
+              0.010566036415094507,
+              0.160754696886795,
+              0.5252829532075554,
+              0.3033961884905708,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "65dec6457eb447ce9f34d51834cf7e94",
+          "class_label": 1,
+          "class_name": "class_1",
+          "distance": 3.6416680812835693,
+          "box": [
+            0,
+            171,
+            476,
+            469
+          ],
+          "morphology": {
+            "area": 14141,
+            "box_area": 142623,
+            "box_fill_ratio": 0.09914950604040021,
+            "aspect_ratio": 1.5953177257525084,
+            "log_area": 9.556904372164187,
+            "norm_centroid_x": 0.5024482591990194,
+            "norm_centroid_y": 0.4878160137189732,
+            "crop_mean_intensity": 0.36164677143096924,
+            "crop_std_intensity": 0.05150708183646202,
+            "contrast": 0.03578343987464905,
+            "hist_8": [
+              0.0,
+              0.003606533740541744,
+              0.5510217824764955,
+              0.44523012608727097,
+              0.00014143269570751935,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "f9e2c8ce29c04451a1f7602fac70e79a",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 3.6627442836761475,
+          "box": [
+            122,
+            141,
+            331,
+            322
+          ],
+          "morphology": {
+            "area": 883,
+            "box_area": 38220,
+            "box_fill_ratio": 0.023103087388801676,
+            "aspect_ratio": 1.1538461538461537,
+            "log_area": 6.784457062637643,
+            "norm_centroid_x": 0.47814033597583994,
+            "norm_centroid_y": 0.48321772366930915,
+            "crop_mean_intensity": 0.3596784472465515,
+            "crop_std_intensity": 0.07083069533109665,
+            "contrast": 0.03748854994773865,
+            "hist_8": [
+              0.0,
+              0.08267269634767968,
+              0.3895809252548193,
+              0.5141562211211859,
+              0.013590032276330904,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "cd0cc599c8d1427c916dca5f3b41ade1",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 3.893385887145996,
+          "box": [
+            0,
+            159,
+            381,
+            421
+          ],
+          "morphology": {
+            "area": 3085,
+            "box_area": 100466,
+            "box_fill_ratio": 0.030706905818884002,
+            "aspect_ratio": 1.4524714828897338,
+            "log_area": 8.034631032923107,
+            "norm_centroid_x": 0.5089012695840086,
+            "norm_centroid_y": 0.5062148838465694,
+            "crop_mean_intensity": 0.3674122095108032,
+            "crop_std_intensity": 0.0684778094291687,
+            "contrast": 0.028066396713256836,
+            "hist_8": [
+              0.0,
+              0.06450566454619226,
+              0.3867098382090823,
+              0.5364667076580311,
+              0.012317664586710079,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae248474dfa9f865418e",
+      "sam_initial_response_id": "resp_6ae1ae248474dfa9f865418e",
+      "sam_refined_response_id": "resp_6ae1ae271f3c1c8c25d14bdc",
+      "triage_response_id": "chatcmpl-01a18190-6cdd-72fb-b01b-cf94d7520975",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 2227,
+        "prompt_tokens": 1424,
+        "total_tokens": 3651,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1860,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 1393,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 2,
+      "role": "rare_c2_unseen",
+      "perturbed": false,
+      "iou_gt_initial": 0.4948,
+      "iou_gt_final": 0.4945,
+      "delta_iou_gt": -0.0003,
+      "iou_proxy_initial": 0.6033,
+      "iou_proxy_final": 0.6319
+    },
+    {
+      "image_id": "75e64833559e418b8ee5a3760b0b6f21",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.96,
+      "rationale": "Query shows compact blocky defect with area/aspect matching nominal class_3 variation. Unanimous class_3 retrieval, high U-Net/SAM agreement, and all baselines ACCEPT_NOMINAL support nominal disposition with no rare morphology.",
+      "cited_evidence": [
+        "Top-1 neighbor b974f93c class_3 d=1.148 area 4057px aspect 1.28 closely matches query 3691px aspect 1.26",
+        "All top-5 neighbors unanimous class_3 with distances 1.148 to 1.628",
+        "U-Net/SAM Proxy IoU 0.863 discordance 0.137 indicates high mask agreement",
+        "U-Net max_prob=1.000 ACCEPT_NOMINAL and k-NN P(rare)=0.122 ACCEPT_NOMINAL",
+        "Box fill ratio 0.67 and aspect 1.26 consistent with nominal blocky class_3 morphology"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        205,
+        206,
+        287,
+        271
+      ],
+      "refined_box": [
+        205,
+        206,
+        287,
+        271
+      ],
+      "initial_unet_sam_iou": 0.8631898971000935,
+      "final_unet_sam_iou": 0.8631898971000935,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.13681010289990647,
+        "details": {
+          "unet_sam_iou": 0.8631898971000935,
+          "discordance": 0.13681010289990647,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.12189258494233148,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.2438,
+          "p_combined": 0.1219,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.1476,
+            1.3614,
+            1.4765,
+            1.6021,
+            1.6279
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "b974f93c18b84730aef1dbd095159568",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.147639274597168,
+          "box": [
+            212,
+            224,
+            297,
+            290
+          ],
+          "morphology": {
+            "area": 4057,
+            "box_area": 5762,
+            "box_fill_ratio": 0.7040958000694203,
+            "aspect_ratio": 1.2835820895522387,
+            "log_area": 8.30844552038576,
+            "norm_centroid_x": 0.5297284528797962,
+            "norm_centroid_y": 0.5372175663462329,
+            "crop_mean_intensity": 0.18013891577720642,
+            "crop_std_intensity": 0.06314560025930405,
+            "contrast": 0.1567801535129547,
+            "hist_8": [
+              0.08947497032906229,
+              0.7860487062792827,
+              0.10500368418782517,
+              0.019472514203845513,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "997f8dccb818436f8fca8edafbd05dff",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.3613866567611694,
+          "box": [
+            182,
+            198,
+            281,
+            271
+          ],
+          "morphology": {
+            "area": 5052,
+            "box_area": 7400,
+            "box_fill_ratio": 0.6827027027027027,
+            "aspect_ratio": 1.3513513513513513,
+            "log_area": 8.527737405291909,
+            "norm_centroid_x": 0.48771113750329903,
+            "norm_centroid_y": 0.49198708432304034,
+            "crop_mean_intensity": 0.20975501835346222,
+            "crop_std_intensity": 0.08207198232412338,
+            "contrast": 0.1640550047159195,
+            "hist_8": [
+              0.0904592127622738,
+              0.6874504287163608,
+              0.176563715063344,
+              0.033650035382027446,
+              0.011876483076009688,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "36b410f0b7454bf5b8fd9308db1d38df",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.4764869213104248,
+          "box": [
+            227,
+            219,
+            299,
+            286
+          ],
+          "morphology": {
+            "area": 3596,
+            "box_area": 4964,
+            "box_fill_ratio": 0.7244157937147462,
+            "aspect_ratio": 1.0735294117647058,
+            "log_area": 8.187855443695623,
+            "norm_centroid_x": 0.5427355626622173,
+            "norm_centroid_y": 0.5310518631813126,
+            "crop_mean_intensity": 0.19958235323429108,
+            "crop_std_intensity": 0.0792500227689743,
+            "contrast": 0.17029784619808197,
+            "hist_8": [
+              0.07786428392658631,
+              0.7408230442158069,
+              0.12402668082591964,
+              0.05561734566184737,
+              0.0016685203698554212,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "1e924ec09a9c402b928188fec957568d",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.602100133895874,
+          "box": [
+            190,
+            178,
+            343,
+            295
+          ],
+          "morphology": {
+            "area": 11671,
+            "box_area": 18172,
+            "box_fill_ratio": 0.6422518159806295,
+            "aspect_ratio": 1.305084745762712,
+            "log_area": 9.364948090202622,
+            "norm_centroid_x": 0.557488647073944,
+            "norm_centroid_y": 0.48900479821780485,
+            "crop_mean_intensity": 0.18955010175704956,
+            "crop_std_intensity": 0.06575114279985428,
+            "contrast": 0.1740458607673645,
+            "hist_8": [
+              0.10924512386470911,
+              0.7673720230057527,
+              0.09373660039842491,
+              0.02818952607959945,
+              0.0014566016515294548,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "879027622f8a44058027090448ab8537",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.627854347229004,
+          "box": [
+            233,
+            234,
+            301,
+            281
+          ],
+          "morphology": {
+            "area": 2370,
+            "box_area": 3312,
+            "box_fill_ratio": 0.7155797101449275,
+            "aspect_ratio": 1.4375,
+            "log_area": 7.771067086065406,
+            "norm_centroid_x": 0.5582146624472574,
+            "norm_centroid_y": 0.5415664556962025,
+            "crop_mean_intensity": 0.1946173757314682,
+            "crop_std_intensity": 0.07320832461118698,
+            "contrast": 0.15844036638736725,
+            "hist_8": [
+              0.1080168641350228,
+              0.6962024446202641,
+              0.17172993633966513,
+              0.02405062990506367,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae325310bbcc6f744c2e",
+      "sam_initial_response_id": "resp_6ae1ae325310bbcc6f744c2e",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-869d-721a-a519-7725a81ab0fe",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1333,
+        "prompt_tokens": 1327,
+        "total_tokens": 2660,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1016,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 1265,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 5,
+      "role": "rare_c5_unseen",
+      "perturbed": false,
+      "iou_gt_initial": 0.9102,
+      "iou_gt_final": 0.9102,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.8632,
+      "iou_proxy_final": 0.8632
+    },
+    {
+      "image_id": "404e77708f1649dcb94ce4e692741ed4",
+      "decision": "NO_DEFECT_REIMAGE",
+      "confidence": 1.0,
+      "rationale": "Empty-scan gate triggered: No connected foreground component survived the area >= 16px filter.",
+      "cited_evidence": [
+        "Filtered foreground pixels: 0 < 64 threshold",
+        "No valid connected component survived area >= 16px filter"
+      ],
+      "is_empty_scan": true,
+      "empty_scan_reason": "No connected foreground component survived the area >= 16px filter",
+      "initial_box": null,
+      "refined_box": null,
+      "initial_unet_sam_iou": 0.0,
+      "final_unet_sam_iou": 0.0,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "NO_DEFECT_REIMAGE",
+        "score": 0.0,
+        "details": {
+          "max_prob": 0.4062,
+          "is_empty": true
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "NO_DEFECT_REIMAGE",
+        "score": 1.0,
+        "details": {
+          "unet_sam_iou": 0.0,
+          "discordance": 1.0,
+          "is_empty": true
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "NO_DEFECT_REIMAGE",
+        "score": 0.0,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.0,
+          "p_combined": 0.0,
+          "is_empty": true
+        }
+      },
+      "retrieved_neighbors": [],
+      "sam_response_id": null,
+      "sam_initial_response_id": null,
+      "sam_refined_response_id": null,
+      "triage_response_id": null,
+      "triage_model": "muse-spark-1.3",
+      "token_usage": null,
+      "true_label": 6,
+      "role": "empty_scan_c6",
+      "perturbed": false,
+      "iou_gt_initial": 1.0,
+      "iou_gt_final": 1.0,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.0,
+      "iou_proxy_final": 0.0
+    },
+    {
+      "image_id": "52b03c7a76c340cfb4cb40d2685673f1",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.95,
+      "rationale": "Compact irregular particle morphology matches nominal class_3 process variation. All 5 retrieved exemplars are class_3 with close distances and similar area/aspect, mask quality is good with IoU 0.777, and all baselines vote nominal with low rare probability.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimous class_3 with distances 1.71, 1.82, 1.84, 1.90, 1.93",
+        "Query area 3280px within neighbor range 1835-5729px, closest #1 3979px",
+        "Query aspect ratio 1.13 matches neighbor range 0.85-1.39 and #3 1.18",
+        "Box fill ratio 0.58 consistent with irregular compact class_3 particle morphology",
+        "Proxy IoU 0.777 indicates good U-Net/SAM mask agreement (discordance 0.223)",
+        "Baselines unanimous ACCEPT_NOMINAL: max_prob=1.000, P(rare)=0.183"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        185,
+        202,
+        264,
+        272
+      ],
+      "refined_box": [
+        185,
+        202,
+        264,
+        272
+      ],
+      "initial_unet_sam_iou": 0.7770624701955174,
+      "final_unet_sam_iou": 0.7770624701955174,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.22293752980448256,
+        "details": {
+          "unet_sam_iou": 0.7770624701955174,
+          "discordance": 0.22293752980448256,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.18279200941935722,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.3656,
+          "p_combined": 0.1828,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.7124,
+            1.8216,
+            1.8391,
+            1.9013,
+            1.9306
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "b620c1a1a6894ad183d6ed62c18c9a56",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.7124160528182983,
+          "box": [
+            197,
+            197,
+            272,
+            273
+          ],
+          "morphology": {
+            "area": 3979,
+            "box_area": 5852,
+            "box_fill_ratio": 0.6799384825700615,
+            "aspect_ratio": 0.987012987012987,
+            "log_area": 8.289037098278483,
+            "norm_centroid_x": 0.48256262042389214,
+            "norm_centroid_y": 0.4816772430258859,
+            "crop_mean_intensity": 0.270898699760437,
+            "crop_std_intensity": 0.12456401437520981,
+            "contrast": 0.022373110055923462,
+            "hist_8": [
+              0.19703440613219714,
+              0.10580546553782523,
+              0.47423969945338773,
+              0.20809245953757552,
+              0.01482784433903014,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "f8e96d0d096549408338dfc71a8be89f",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.8215906620025635,
+          "box": [
+            220,
+            195,
+            290,
+            278
+          ],
+          "morphology": {
+            "area": 3870,
+            "box_area": 5964,
+            "box_fill_ratio": 0.6488933601609658,
+            "aspect_ratio": 0.8452380952380952,
+            "log_area": 8.261268150577648,
+            "norm_centroid_x": 0.5373374246339362,
+            "norm_centroid_y": 0.48952627045650304,
+            "crop_mean_intensity": 0.25429803133010864,
+            "crop_std_intensity": 0.11663322150707245,
+            "contrast": 0.09599131345748901,
+            "hist_8": [
+              0.19095604848191516,
+              0.24935397399871193,
+              0.3808785053617631,
+              0.17751935765504157,
+              0.0012919895025839997,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "863ec33a5a564b6f9c4b515075e6e55f",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.8390792608261108,
+          "box": [
+            180,
+            191,
+            277,
+            273
+          ],
+          "morphology": {
+            "area": 5729,
+            "box_area": 8134,
+            "box_fill_ratio": 0.7043275141381854,
+            "aspect_ratio": 1.180722891566265,
+            "log_area": 8.653470809708786,
+            "norm_centroid_x": 0.4676376040030255,
+            "norm_centroid_y": 0.49077064060045383,
+            "crop_mean_intensity": 0.2660594880580902,
+            "crop_std_intensity": 0.11873379349708557,
+            "contrast": 0.08754536509513855,
+            "hist_8": [
+              0.1406877115116098,
+              0.29778317101588875,
+              0.3840111232326819,
+              0.14697152989178097,
+              0.030546339348054244,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "fe057a28f92045369a7fcd6ff68be5b2",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.9013413190841675,
+          "box": [
+            177,
+            196,
+            276,
+            267
+          ],
+          "morphology": {
+            "area": 4469,
+            "box_area": 7200,
+            "box_fill_ratio": 0.6206944444444444,
+            "aspect_ratio": 1.3888888888888888,
+            "log_area": 8.405143687607614,
+            "norm_centroid_x": 0.4709424181397777,
+            "norm_centroid_y": 0.47954007235026475,
+            "crop_mean_intensity": 0.2809858024120331,
+            "crop_std_intensity": 0.09898995608091354,
+            "contrast": 0.07672417163848877,
+            "hist_8": [
+              0.08525396114902796,
+              0.2494965004755018,
+              0.5097336574737158,
+              0.14388004466883197,
+              0.0116357112329382,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "42ccaa845bf44914963b37894be9d2c9",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.9306186437606812,
+          "box": [
+            212,
+            214,
+            271,
+            264
+          ],
+          "morphology": {
+            "area": 1835,
+            "box_area": 3060,
+            "box_fill_ratio": 0.5996732026143791,
+            "aspect_ratio": 1.1764705882352942,
+            "log_area": 7.515344571180436,
+            "norm_centroid_x": 0.5080653950953679,
+            "norm_centroid_y": 0.5014645776566757,
+            "crop_mean_intensity": 0.3074980080127716,
+            "crop_std_intensity": 0.11976202577352524,
+            "contrast": 0.07908540964126587,
+            "hist_8": [
+              0.11607627976839419,
+              0.14877382336512496,
+              0.40435962247957036,
+              0.31553129570845184,
+              0.015258853678474354,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae389e0d55594c014259",
+      "sam_initial_response_id": "resp_6ae1ae389e0d55594c014259",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-9f9b-71c2-bd80-9abed15d62ff",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1345,
+        "prompt_tokens": 1323,
+        "total_tokens": 2668,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1007,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 3,
+      "role": "nominal_c3_1",
+      "perturbed": false,
+      "iou_gt_initial": 0.8591,
+      "iou_gt_final": 0.8591,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.7771,
+      "iou_proxy_final": 0.7771
+    },
+    {
+      "image_id": "4e27428d290e4c7ebbccae1c93920343",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.96,
+      "rationale": "Compact blob defect with AR 1.13, fill 0.66, area 395px matches nominal class_3 process variation. All 5 retrieved exemplars are class_3 with similar area/aspect, high segmentation agreement (IoU 0.812), and low rare probability, confirming nominal morphology.",
+      "cited_evidence": [
+        "Top-5 NN unanimous class_3 with distances 0.758 to 1.146",
+        "#1 class_3 d=0.758 Area 610px AR 1.18 matches query AR 1.13",
+        "#2 class_3 d=1.042 Area 371px AR 1.18 near-identical to query Area 395px",
+        "Query morphology: Area 395px AR 1.13 Fill 0.66 Intensity 0.31\u00b10.10 compact blob",
+        "U-Net/SAM Proxy IoU 0.812 discordance 0.188 high mask agreement",
+        "Baselines: U-Net max_prob 1.000 ACCEPT, k-NN P(rare)=0.021 ACCEPT"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        225,
+        224,
+        250,
+        246
+      ],
+      "refined_box": [
+        225,
+        224,
+        250,
+        246
+      ],
+      "initial_unet_sam_iou": 0.8123711340206186,
+      "final_unet_sam_iou": 0.8123711340206186,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.18762886597938144,
+        "details": {
+          "unet_sam_iou": 0.8123711340206186,
+          "discordance": 0.18762886597938144,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.02090413521063992,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.0418,
+          "p_combined": 0.0209,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            0.7581,
+            1.0423,
+            1.0739,
+            1.1194,
+            1.1457
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "473c5c1ead8d4ea6afce7cd29704040d",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 0.7581118941307068,
+          "box": [
+            231,
+            226,
+            263,
+            253
+          ],
+          "morphology": {
+            "area": 610,
+            "box_area": 924,
+            "box_fill_ratio": 0.6601731601731602,
+            "aspect_ratio": 1.1785714285714286,
+            "log_area": 6.415096959171596,
+            "norm_centroid_x": 0.5139822404371585,
+            "norm_centroid_y": 0.5005532786885246,
+            "crop_mean_intensity": 0.314934104681015,
+            "crop_std_intensity": 0.09696096926927567,
+            "contrast": 0.0762735903263092,
+            "hist_8": [
+              0.004918032172131225,
+              0.28524586598361107,
+              0.40491798217213754,
+              0.28524586598361107,
+              0.0196721286885249,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "7df9354a01a1454dae537918d37e1df3",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.042272686958313,
+          "box": [
+            233,
+            233,
+            258,
+            254
+          ],
+          "morphology": {
+            "area": 371,
+            "box_area": 572,
+            "box_fill_ratio": 0.6486013986013986,
+            "aspect_ratio": 1.1818181818181819,
+            "log_area": 5.918893854273146,
+            "norm_centroid_x": 0.510343665768194,
+            "norm_centroid_y": 0.5077493261455526,
+            "crop_mean_intensity": 0.31645265221595764,
+            "crop_std_intensity": 0.10877693444490433,
+            "contrast": 0.06033012270927429,
+            "hist_8": [
+              0.05121293160377439,
+              0.22641506603773942,
+              0.36927219103774167,
+              0.3396225990566091,
+              0.013477087264151156,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "5c1cf6c0a98f48d49e27dfe24344b4f7",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.0738569498062134,
+          "box": [
+            232,
+            233,
+            256,
+            257
+          ],
+          "morphology": {
+            "area": 442,
+            "box_area": 625,
+            "box_fill_ratio": 0.7072,
+            "aspect_ratio": 1.0,
+            "log_area": 6.093569770045136,
+            "norm_centroid_x": 0.5107560331825038,
+            "norm_centroid_y": 0.5089649321266968,
+            "crop_mean_intensity": 0.29120752215385437,
+            "crop_std_intensity": 0.10233284533023834,
+            "contrast": 0.09302040934562683,
+            "hist_8": [
+              0.05429863574660719,
+              0.3076922692307741,
+              0.39140266600679346,
+              0.22624431561086328,
+              0.020361988404977695,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "c2850d6af2934befb3291e4f0b250655",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.1194344758987427,
+          "box": [
+            229,
+            232,
+            253,
+            250
+          ],
+          "morphology": {
+            "area": 352,
+            "box_area": 475,
+            "box_fill_ratio": 0.7410526315789474,
+            "aspect_ratio": 1.3157894736842106,
+            "log_area": 5.8664680569332965,
+            "norm_centroid_x": 0.5019294507575758,
+            "norm_centroid_y": 0.5023674242424242,
+            "crop_mean_intensity": 0.3122437596321106,
+            "crop_std_intensity": 0.09835482388734818,
+            "contrast": 0.07831895351409912,
+            "hist_8": [
+              0.025568178622159494,
+              0.22443179012784442,
+              0.4517044889914844,
+              0.2727272386363679,
+              0.025568178622159494,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "1f6dd80c8d674c5fa778fca06b1d9695",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.1456891298294067,
+          "box": [
+            235,
+            226,
+            253,
+            244
+          ],
+          "morphology": {
+            "area": 248,
+            "box_area": 361,
+            "box_fill_ratio": 0.6869806094182825,
+            "aspect_ratio": 1.0,
+            "log_area": 5.517452896464707,
+            "norm_centroid_x": 0.5058719758064516,
+            "norm_centroid_y": 0.49202788978494627,
+            "crop_mean_intensity": 0.319845050573349,
+            "crop_std_intensity": 0.08905693143606186,
+            "contrast": 0.08466649055480957,
+            "hist_8": [
+              0.020161287802419672,
+              0.21774190826613246,
+              0.46774187701613634,
+              0.2741935141129075,
+              0.020161287802419672,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae3d29ec851f69b24f6a",
+      "sam_initial_response_id": "resp_6ae1ae3d29ec851f69b24f6a",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-b5fa-72e7-8de5-0c151eeb9cdd",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1024,
+        "prompt_tokens": 1312,
+        "total_tokens": 2336,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 676,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 3,
+      "role": "nominal_c3_2",
+      "perturbed": false,
+      "iou_gt_initial": 0.7171,
+      "iou_gt_final": 0.7171,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.8124,
+      "iou_proxy_final": 0.8124
+    },
+    {
+      "image_id": "2dade3ad5e1b4ed3a1c43952dd5c9b6c",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.96,
+      "rationale": "Compact rounded blob with aspect 1.53 and fill 0.64 matches nominal class_3 process variation. All 5 neighbors class_3 with close morphology, high U-Net/SAM agreement, and all baselines ACCEPT.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimously class_3 with tight distances d=1.187 to 1.276",
+        "Aspect ratio 1.53 matches #1 (1.46), #2 (1.56), #3 (1.61)",
+        "Area 2728px consistent with #1 3127px, #3 3340px, #2 3457px",
+        "Box fill 0.64 indicates compact blob morphology like nominal exemplars",
+        "U-Net/SAM agreement IoU 0.80 (discordance 0.20) = high mask quality",
+        "Baselines unanimous ACCEPT_NOMINAL: max_prob=1.000, P(rare)=0.160"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        208,
+        213,
+        288,
+        265
+      ],
+      "refined_box": [
+        208,
+        213,
+        288,
+        265
+      ],
+      "initial_unet_sam_iou": 0.8001175778953556,
+      "final_unet_sam_iou": 0.8001175778953556,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.19988242210464435,
+        "details": {
+          "unet_sam_iou": 0.8001175778953556,
+          "discordance": 0.19988242210464435,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.16022986552391505,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.3205,
+          "p_combined": 0.1602,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.1865,
+            1.2075,
+            1.2274,
+            1.2556,
+            1.276
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "16702eda48814fdb852395f6bb5f82b4",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.1865464448928833,
+          "box": [
+            216,
+            217,
+            297,
+            272
+          ],
+          "morphology": {
+            "area": 3127,
+            "box_area": 4592,
+            "box_fill_ratio": 0.6809668989547039,
+            "aspect_ratio": 1.4642857142857142,
+            "log_area": 8.048149101665201,
+            "norm_centroid_x": 0.531545810681164,
+            "norm_centroid_y": 0.4987901076644281,
+            "crop_mean_intensity": 0.22202450037002563,
+            "crop_std_intensity": 0.10544480383396149,
+            "contrast": 0.1191064715385437,
+            "hist_8": [
+              0.1557403067236993,
+              0.5267028442996565,
+              0.20179082862968017,
+              0.1080908083626496,
+              0.00767508698433015,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "a840df1bdefc445ca8a39b5f18677231",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.2075471878051758,
+          "box": [
+            210,
+            211,
+            301,
+            269
+          ],
+          "morphology": {
+            "area": 3457,
+            "box_area": 5428,
+            "box_fill_ratio": 0.6368828297715549,
+            "aspect_ratio": 1.5593220338983051,
+            "log_area": 8.148445666243235,
+            "norm_centroid_x": 0.5313849918040691,
+            "norm_centroid_y": 0.49915449329862116,
+            "crop_mean_intensity": 0.2578173279762268,
+            "crop_std_intensity": 0.11202049255371094,
+            "contrast": 0.09018358588218689,
+            "hist_8": [
+              0.0584321593144354,
+              0.5498986874096125,
+              0.2253398619106197,
+              0.12120334036014076,
+              0.04512582600520754,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "00a7233a4d564357844d59b7b38aa85a",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.227433681488037,
+          "box": [
+            209,
+            222,
+            295,
+            275
+          ],
+          "morphology": {
+            "area": 3340,
+            "box_area": 4698,
+            "box_fill_ratio": 0.7109408258833546,
+            "aspect_ratio": 1.6111111111111112,
+            "log_area": 8.114025442356757,
+            "norm_centroid_x": 0.5230988023952096,
+            "norm_centroid_y": 0.520435379241517,
+            "crop_mean_intensity": 0.25152403116226196,
+            "crop_std_intensity": 0.11242426186800003,
+            "contrast": 0.0941891074180603,
+            "hist_8": [
+              0.08203591788922283,
+              0.5290418500374334,
+              0.2362275153817402,
+              0.11347303970808559,
+              0.03862274966317425,
+              0.0005988023203592907,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "796fe07aba36440586ba9c28e6d1832d",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.255600094795227,
+          "box": [
+            203,
+            200,
+            290,
+            272
+          ],
+          "morphology": {
+            "area": 4460,
+            "box_area": 6424,
+            "box_fill_ratio": 0.6942714819427148,
+            "aspect_ratio": 1.2054794520547945,
+            "log_area": 8.403128235128264,
+            "norm_centroid_x": 0.516124346038864,
+            "norm_centroid_y": 0.49521160313901347,
+            "crop_mean_intensity": 0.2481420636177063,
+            "crop_std_intensity": 0.10234107077121735,
+            "contrast": 0.08780297636985779,
+            "hist_8": [
+              0.07488788301569624,
+              0.5540358051849863,
+              0.2343049034473131,
+              0.12264572457959834,
+              0.014125558772421746,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "631abdd5ce0b493694cc2cdb7e3b29ba",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.276004433631897,
+          "box": [
+            191,
+            208,
+            323,
+            286
+          ],
+          "morphology": {
+            "area": 6515,
+            "box_area": 10507,
+            "box_fill_ratio": 0.6200628152660131,
+            "aspect_ratio": 1.6835443037974684,
+            "log_area": 8.782015969721936,
+            "norm_centroid_x": 0.5325338961371194,
+            "norm_centroid_y": 0.5104790227679713,
+            "crop_mean_intensity": 0.24842581152915955,
+            "crop_std_intensity": 0.11026182770729065,
+            "contrast": 0.08291825652122498,
+            "hist_8": [
+              0.10007673346124486,
+              0.449577840963169,
+              0.2907137011895671,
+              0.15702223670376303,
+              0.002609362682271722,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae43eab79193f77e4a96",
+      "sam_initial_response_id": "resp_6ae1ae43eab79193f77e4a96",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-cb40-7399-9a97-df0f2945231f",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1212,
+        "prompt_tokens": 1317,
+        "total_tokens": 2529,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 885,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 3,
+      "role": "nominal_c3_3",
+      "perturbed": false,
+      "iou_gt_initial": 0.9484,
+      "iou_gt_final": 0.9484,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.8001,
+      "iou_proxy_final": 0.8001
+    },
+    {
+      "image_id": "ef3a94a2231d410aa67eeb24f7765f19",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.95,
+      "rationale": "Elongated particle morphology with consistent size/shape to all 5 class_3 neighbors, high U-Net/SAM agreement, and all baselines nominal. Matches nominal process variation class_3.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimously class_3 with distances 1.552, 1.624, 1.771, 1.910, 2.142",
+        "Query area 5527px within neighbor range 3894-7732px; AR 1.71 within neighbor AR 1.31-1.89",
+        "Box fill ratio 0.45 and elongated flake morphology matches class_3 exemplars #1-#3",
+        "U-Net/SAM Proxy IoU 0.797 (discordance 0.203) indicates good mask agreement",
+        "Baselines: U-Net max_prob=1.000 ACCEPT, P(rare)=0.302 ACCEPT"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        228,
+        206,
+        372,
+        290
+      ],
+      "refined_box": [
+        228,
+        206,
+        372,
+        290
+      ],
+      "initial_unet_sam_iou": 0.7974318280190449,
+      "final_unet_sam_iou": 0.7974318280190449,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.20256817198095511,
+        "details": {
+          "unet_sam_iou": 0.7974318280190449,
+          "discordance": 0.20256817198095511,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.3018437542984067,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.6037,
+          "p_combined": 0.3018,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.5524,
+            1.6239,
+            1.7712,
+            1.9104,
+            2.1421
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "dc43451ff65645bf98518d7ef141fb64",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.5523587465286255,
+          "box": [
+            236,
+            191,
+            381,
+            287
+          ],
+          "morphology": {
+            "area": 7732,
+            "box_area": 14162,
+            "box_fill_ratio": 0.5459680836040107,
+            "aspect_ratio": 1.5051546391752577,
+            "log_area": 8.953252164609035,
+            "norm_centroid_x": 0.6451845145714779,
+            "norm_centroid_y": 0.4873483035868253,
+            "crop_mean_intensity": 0.2578243911266327,
+            "crop_std_intensity": 0.08276897668838501,
+            "contrast": 0.11430442333221436,
+            "hist_8": [
+              0.01901189622672042,
+              0.465726791240954,
+              0.43222964074625614,
+              0.0610450001293336,
+              0.02198654665675151,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "da93bc5d02c74819bae0a4bb3f2a9c0f",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.6238601207733154,
+          "box": [
+            253,
+            199,
+            348,
+            270
+          ],
+          "morphology": {
+            "area": 3894,
+            "box_area": 6912,
+            "box_fill_ratio": 0.5633680555555556,
+            "aspect_ratio": 1.3333333333333333,
+            "log_area": 8.267448958304849,
+            "norm_centroid_x": 0.6228792158876905,
+            "norm_centroid_y": 0.48926179164526623,
+            "crop_mean_intensity": 0.2686254680156708,
+            "crop_std_intensity": 0.07523076981306076,
+            "contrast": 0.1215822696685791,
+            "hist_8": [
+              0.011813044234720268,
+              0.4345145835901455,
+              0.46456080479584705,
+              0.08448894680919496,
+              0.004622495570107931,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "6bb730ce2c9347528cbe4f18e4a896f0",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.771204948425293,
+          "box": [
+            226,
+            233,
+            342,
+            294
+          ],
+          "morphology": {
+            "area": 4154,
+            "box_area": 7254,
+            "box_fill_ratio": 0.5726495726495726,
+            "aspect_ratio": 1.8870967741935485,
+            "log_area": 8.332067707289548,
+            "norm_centroid_x": 0.5893456106563953,
+            "norm_centroid_y": 0.5474447319852351,
+            "crop_mean_intensity": 0.2594570219516754,
+            "crop_std_intensity": 0.07777126878499985,
+            "contrast": 0.11940324306488037,
+            "hist_8": [
+              0.025036106644198756,
+              0.4845931026420394,
+              0.3993740473339013,
+              0.09027442299590897,
+              0.0007221953839672718,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "dc4dc5e2c83348729545ace533316a57",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.9103933572769165,
+          "box": [
+            242,
+            178,
+            364,
+            271
+          ],
+          "morphology": {
+            "area": 6278,
+            "box_area": 11562,
+            "box_fill_ratio": 0.5429856426223837,
+            "aspect_ratio": 1.3085106382978724,
+            "log_area": 8.744966011114109,
+            "norm_centroid_x": 0.6082414118084316,
+            "norm_centroid_y": 0.4864132021875332,
+            "crop_mean_intensity": 0.25025704503059387,
+            "crop_std_intensity": 0.08496617525815964,
+            "contrast": 0.11925357580184937,
+            "hist_8": [
+              0.047148767601147605,
+              0.4859827363212883,
+              0.3877030416932205,
+              0.07120101053281411,
+              0.007964318851545204,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "5605aee62e50424cb00a791f995f1ba1",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 2.1420979499816895,
+          "box": [
+            226,
+            226,
+            363,
+            315
+          ],
+          "morphology": {
+            "area": 6347,
+            "box_area": 12420,
+            "box_fill_ratio": 0.5110305958132045,
+            "aspect_ratio": 1.5333333333333334,
+            "log_area": 8.7558950816463,
+            "norm_centroid_x": 0.6060271256761725,
+            "norm_centroid_y": 0.5639655874166273,
+            "crop_mean_intensity": 0.27520307898521423,
+            "crop_std_intensity": 0.07531940191984177,
+            "contrast": 0.07970437407493591,
+            "hist_8": [
+              0.000315109461162759,
+              0.5363163028990159,
+              0.3422088748227563,
+              0.10319834853080358,
+              0.017961239286277263,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae49e3fac9d4de284a2e",
+      "sam_initial_response_id": "resp_6ae1ae49e3fac9d4de284a2e",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-de9c-72e3-95da-89dba13f993a",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1116,
+        "prompt_tokens": 1334,
+        "total_tokens": 2450,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 804,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 1265,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 3,
+      "role": "nominal_c3_4",
+      "perturbed": false,
+      "iou_gt_initial": 0.864,
+      "iou_gt_final": 0.864,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.7974,
+      "iou_proxy_final": 0.7974
+    },
+    {
+      "image_id": "1bf20f9c19b642438dc547aa16f09207",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.89,
+      "rationale": "Compact oval defect with AR 1.76 and fill 0.59 consistent with nominal class_3/4 process variation. All 5 retrieved exemplars are nominal, mask agreement is good (IoU 0.746), and all three baselines unanimously vote ACCEPT_NOMINAL with low rare probability.",
+      "cited_evidence": [
+        "Top-5 NN unanimously nominal: 3x class_4 (#1 d=1.747, #2 d=1.886, #4 d=2.009) and 2x class_3 (#3 d=1.960, #5 d=2.041)",
+        "#1 nearest class_4 AR 1.63 vs query AR 1.76 \u2013 close shape match",
+        "Query morphology: compact oval, Box Fill 0.59, Area 1512px, Mean Intensity 0.27 Std 0.14 uniform",
+        "U-Net/SAM Proxy IoU 0.746, discordance 0.254 \u2013 good mask agreement",
+        "Baseline1 U-Net Max Confidence ACCEPT_NOMINAL max_prob=1.000",
+        "Baseline3 k-NN P(rare)=0.317 ACCEPT_NOMINAL"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        210,
+        222,
+        276,
+        259
+      ],
+      "refined_box": [
+        210,
+        222,
+        276,
+        259
+      ],
+      "initial_unet_sam_iou": 0.7455621301775148,
+      "final_unet_sam_iou": 0.7455621301775148,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.2544378698224852,
+        "details": {
+          "unet_sam_iou": 0.7455621301775148,
+          "discordance": 0.2544378698224852,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.3173127172514501,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.6346,
+          "p_combined": 0.3173,
+          "top5_classes": [
+            "class_4",
+            "class_4",
+            "class_3",
+            "class_4",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.7472,
+            1.8865,
+            1.9602,
+            2.0088,
+            2.0411
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "d93fd87a79d9411e8bbe5b2de5c7b79d",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.7472270727157593,
+          "box": [
+            201,
+            209,
+            288,
+            262
+          ],
+          "morphology": {
+            "area": 3421,
+            "box_area": 4752,
+            "box_fill_ratio": 0.7199074074074074,
+            "aspect_ratio": 1.6296296296296295,
+            "log_area": 8.137980454452139,
+            "norm_centroid_x": 0.5098819789535224,
+            "norm_centroid_y": 0.49601298353308,
+            "crop_mean_intensity": 0.2772839069366455,
+            "crop_std_intensity": 0.1306486576795578,
+            "contrast": 0.144566148519516,
+            "hist_8": [
+              0.0935398889213695,
+              0.4296988647325411,
+              0.20608006777989216,
+              0.22829579139871742,
+              0.026600405912014447,
+              0.011984798268050465,
+              0.003800057987430636,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "6597aba611a74275bfb445bee214db62",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.8864989280700684,
+          "box": [
+            199,
+            206,
+            291,
+            261
+          ],
+          "morphology": {
+            "area": 3767,
+            "box_area": 5208,
+            "box_fill_ratio": 0.723310291858679,
+            "aspect_ratio": 1.6607142857142858,
+            "log_area": 8.234299635696253,
+            "norm_centroid_x": 0.5145153083797894,
+            "norm_centroid_y": 0.4890048447040085,
+            "crop_mean_intensity": 0.27365410327911377,
+            "crop_std_intensity": 0.1388660967350006,
+            "contrast": 0.12923333048820496,
+            "hist_8": [
+              0.10990176486594279,
+              0.3923546098354189,
+              0.21874167693124846,
+              0.22909474173746044,
+              0.03026280481815816,
+              0.01247677040748626,
+              0.007167506404300617,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "03252083999f47ee9fbdaf5f8ec9fe1e",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.9602117538452148,
+          "box": [
+            213,
+            213,
+            287,
+            260
+          ],
+          "morphology": {
+            "area": 2491,
+            "box_area": 3600,
+            "box_fill_ratio": 0.6919444444444445,
+            "aspect_ratio": 1.5625,
+            "log_area": 7.820840879907344,
+            "norm_centroid_x": 0.5225712565234846,
+            "norm_centroid_y": 0.499713970293055,
+            "crop_mean_intensity": 0.2607221305370331,
+            "crop_std_intensity": 0.15492287278175354,
+            "contrast": 0.10286986827850342,
+            "hist_8": [
+              0.13488557125652562,
+              0.4745081703131347,
+              0.16298673193496843,
+              0.13207545518868133,
+              0.06583700501806607,
+              0.028101160678442837,
+              0.0016057806101967334,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "7132f72085f14788a89ef946ead0950c",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 2.0088136196136475,
+          "box": [
+            206,
+            215,
+            280,
+            272
+          ],
+          "morphology": {
+            "area": 3038,
+            "box_area": 4350,
+            "box_fill_ratio": 0.6983908045977012,
+            "aspect_ratio": 1.293103448275862,
+            "log_area": 8.019283792916793,
+            "norm_centroid_x": 0.5059393515470705,
+            "norm_centroid_y": 0.5054888084265964,
+            "crop_mean_intensity": 0.2607843279838562,
+            "crop_std_intensity": 0.13185544312000275,
+            "contrast": 0.13695600628852844,
+            "hist_8": [
+              0.1560236802995416,
+              0.3722843510944759,
+              0.21856481797235366,
+              0.2159315069124458,
+              0.027649766129032693,
+              0.006254113767281204,
+              0.0032916388248848444,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "5fd4d5b960424cf19f3095d91da33d9b",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 2.041059970855713,
+          "box": [
+            207,
+            214,
+            296,
+            277
+          ],
+          "morphology": {
+            "area": 3738,
+            "box_area": 5760,
+            "box_fill_ratio": 0.6489583333333333,
+            "aspect_ratio": 1.40625,
+            "log_area": 8.226573474977114,
+            "norm_centroid_x": 0.5267455858747994,
+            "norm_centroid_y": 0.5181564339218834,
+            "crop_mean_intensity": 0.25310173630714417,
+            "crop_std_intensity": 0.13357694447040558,
+            "contrast": 0.11726537346839905,
+            "hist_8": [
+              0.09363294709737975,
+              0.48956655196629983,
+              0.24371318515917986,
+              0.11209201381086317,
+              0.04654895084269736,
+              0.011503476357678084,
+              0.0029427497659176493,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae4e57ec0fa9239845ba",
+      "sam_initial_response_id": "resp_6ae1ae4e57ec0fa9239845ba",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18190-fda9-76da-a167-9632d00f56f9",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1972,
+        "prompt_tokens": 1313,
+        "total_tokens": 3285,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1604,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 4,
+      "role": "nominal_c4_1",
+      "perturbed": false,
+      "iou_gt_initial": 0.8567,
+      "iou_gt_final": 0.8567,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.7456,
+      "iou_proxy_final": 0.7456
+    },
+    {
+      "image_id": "bdc04b42c49c4ceab2543b56b2a441af",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.94,
+      "rationale": "Query shows irregular textured particle morphology matching class_4 nominal process variation. Unanimous 5/5 class_4 retrieval, compatible aspect ratio and fill, plus high mask agreement (IoU 0.883) and all baselines ACCEPT_NOMINAL support nominal disposition.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimous class_4 (distances 1.28, 1.52, 1.66, 1.78, 1.78)",
+        "Aspect Ratio 1.37 within neighbor range 1.22-1.59",
+        "Box Fill Ratio 0.70 with Area 8630px vs neighbors 10493-17380px - same scale irregular particle",
+        "Proxy IoU 0.883 / discordance 0.117 indicates high U-Net/SAM mask agreement",
+        "Baseline1 U-Net max_prob=1.000 ACCEPT_NOMINAL",
+        "Baseline3 P(rare)=0.365 ACCEPT_NOMINAL"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        131,
+        186,
+        260,
+        280
+      ],
+      "refined_box": [
+        131,
+        186,
+        260,
+        280
+      ],
+      "initial_unet_sam_iou": 0.8827621483375959,
+      "final_unet_sam_iou": 0.8827621483375959,
+      "refinement_triggered": false,
+      "refinement_accepted": false,
+      "refinement_strategy": "none",
+      "refinement_reasons": [],
+      "delta_iou_proxy": 0.0,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.11723785166240408,
+        "details": {
+          "unet_sam_iou": 0.8827621483375959,
+          "discordance": 0.11723785166240408,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.3653129466080837,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.7306,
+          "p_combined": 0.3653,
+          "top5_classes": [
+            "class_4",
+            "class_4",
+            "class_4",
+            "class_4",
+            "class_4"
+          ],
+          "top5_dists": [
+            1.2797,
+            1.5207,
+            1.6607,
+            1.7748,
+            1.7771
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "b76d4358973643b383a9ed741dc75eef",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.2796710729599,
+          "box": [
+            138,
+            199,
+            288,
+            293
+          ],
+          "morphology": {
+            "area": 10730,
+            "box_area": 14345,
+            "box_fill_ratio": 0.7479958173579645,
+            "aspect_ratio": 1.5894736842105264,
+            "log_area": 9.280892027927127,
+            "norm_centroid_x": 0.44898551568810185,
+            "norm_centroid_y": 0.5084692451071762,
+            "crop_mean_intensity": 0.2369665503501892,
+            "crop_std_intensity": 0.1475684642791748,
+            "contrast": 0.16009795665740967,
+            "hist_8": [
+              0.1986952221342063,
+              0.4356942605428773,
+              0.186672856442221,
+              0.11453866229030935,
+              0.04063373210624481,
+              0.021062439119292037,
+              0.0027027023648649074,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "44d26375c3134c2aaf25b0c8cb37d85e",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.520656704902649,
+          "box": [
+            109,
+            177,
+            286,
+            299
+          ],
+          "morphology": {
+            "area": 17380,
+            "box_area": 21894,
+            "box_fill_ratio": 0.7938247921805061,
+            "aspect_ratio": 1.4471544715447155,
+            "log_area": 9.76313293456348,
+            "norm_centroid_x": 0.4120578011123897,
+            "norm_centroid_y": 0.501328754315305,
+            "crop_mean_intensity": 0.24669712781906128,
+            "crop_std_intensity": 0.14176322519779205,
+            "contrast": 0.1622345745563507,
+            "hist_8": [
+              0.1715765032940188,
+              0.44298038191168704,
+              0.1993095262945946,
+              0.1282508470296338,
+              0.038492515326525346,
+              0.014672034989931186,
+              0.0036248557033947636,
+              0.0010932104502301668
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "08bf19e64a2d4194b05512ff6b22f42d",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.6607420444488525,
+          "box": [
+            150,
+            184,
+            303,
+            291
+          ],
+          "morphology": {
+            "area": 12455,
+            "box_area": 16632,
+            "box_fill_ratio": 0.7488576238576239,
+            "aspect_ratio": 1.4259259259259258,
+            "log_area": 9.429957713513835,
+            "norm_centroid_x": 0.4641872407333066,
+            "norm_centroid_y": 0.4970562357821491,
+            "crop_mean_intensity": 0.24328367412090302,
+            "crop_std_intensity": 0.14870887994766235,
+            "contrast": 0.16009525954723358,
+            "hist_8": [
+              0.1694098543757554,
+              0.46382972925532645,
+              0.17928540512846527,
+              0.12051383479526484,
+              0.033721392814131404,
+              0.02095543696306737,
+              0.011963065545965663,
+              0.0003211561220393467
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "4235146d0e244eb6b99421ef2a7705a4",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.7748486995697021,
+          "box": [
+            130,
+            188,
+            263,
+            297
+          ],
+          "morphology": {
+            "area": 11266,
+            "box_area": 14740,
+            "box_fill_ratio": 0.764314789687924,
+            "aspect_ratio": 1.2181818181818183,
+            "log_area": 9.329633378164166,
+            "norm_centroid_x": 0.4061738120598852,
+            "norm_centroid_y": 0.49890026776732355,
+            "crop_mean_intensity": 0.22864772379398346,
+            "crop_std_intensity": 0.1302928775548935,
+            "contrast": 0.1828630119562149,
+            "hist_8": [
+              0.20779333457971214,
+              0.44407947582328056,
+              0.19012956970087286,
+              0.12098347502441163,
+              0.028226518751109975,
+              0.008521213207882256,
+              0.0002662879127463205,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "4036acf371364f998a6506aeffbbd1d1",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.7771397829055786,
+          "box": [
+            152,
+            191,
+            298,
+            290
+          ],
+          "morphology": {
+            "area": 10493,
+            "box_area": 14700,
+            "box_fill_ratio": 0.7138095238095238,
+            "aspect_ratio": 1.47,
+            "log_area": 9.258558944246657,
+            "norm_centroid_x": 0.47204088439912323,
+            "norm_centroid_y": 0.5030347612694177,
+            "crop_mean_intensity": 0.26882535219192505,
+            "crop_std_intensity": 0.16069121658802032,
+            "contrast": 0.12402132153511047,
+            "hist_8": [
+              0.17592678635757447,
+              0.3596683053702525,
+              0.23568090068379288,
+              0.13065851792862113,
+              0.06366148065377017,
+              0.027732770763842996,
+              0.006385208388926051,
+              0.0002859048532354948
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae56745c4704dab842d8",
+      "sam_initial_response_id": "resp_6ae1ae56745c4704dab842d8",
+      "sam_refined_response_id": null,
+      "triage_response_id": "chatcmpl-01a18191-14e1-74b4-8663-52662934a067",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1203,
+        "prompt_tokens": 1341,
+        "total_tokens": 2544,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 876,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 4,
+      "role": "nominal_c4_2",
+      "perturbed": false,
+      "iou_gt_initial": 0.9335,
+      "iou_gt_final": 0.9335,
+      "delta_iou_gt": 0.0,
+      "iou_proxy_initial": 0.8828,
+      "iou_proxy_final": 0.8828
+    },
+    {
+      "image_id": "52b03c7a76c340cfb4cb40d2685673f1",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.95,
+      "rationale": "Compact irregular particle with AR 1.13 and fill 0.57 matches nominal class_3 variation. Unanimous 5/5 class_3 retrieval, comparable area/aspect, strong segmentation agreement, and all baselines ACCEPT with low rare probability.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimous class_3 with distances 1.731 to 1.936",
+        "Query area 3252px within neighbor range 1835-5729px (closest #1 3979px, #2 3870px)",
+        "Query aspect ratio 1.13 matches neighbor range 0.85-1.39",
+        "Box fill ratio 0.57 consistent with irregular compact class_3 particle morphology",
+        "U-Net/SAM Proxy IoU 0.773 (discordance 0.227) indicates good mask agreement",
+        "Baseline1 U-Net max_prob=1.000 ACCEPT_NOMINAL",
+        "Baseline3 k-NN P(rare)=0.183 ACCEPT_NOMINAL"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        197,
+        213,
+        314,
+        317
+      ],
+      "refined_box": [
+        185,
+        202,
+        264,
+        272
+      ],
+      "initial_unet_sam_iou": 0.058390695466413484,
+      "final_unet_sam_iou": 0.7729226361031518,
+      "refinement_triggered": true,
+      "refinement_accepted": true,
+      "refinement_strategy": "composite_box_and_point",
+      "refinement_reasons": [
+        "U-Net/SAM mask agreement 0.0584 < 0.65",
+        "SAM/UNet area ratio 3.2741 > 3.0 (severe over-segmentation)"
+      ],
+      "delta_iou_proxy": 0.7145,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.22707736389684818,
+        "details": {
+          "unet_sam_iou": 0.7729226361031518,
+          "discordance": 0.22707736389684818,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.18252683145437804,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.3651,
+          "p_combined": 0.1825,
+          "top5_classes": [
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3",
+            "class_3"
+          ],
+          "top5_dists": [
+            1.7315,
+            1.8337,
+            1.8795,
+            1.8833,
+            1.9359
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "b620c1a1a6894ad183d6ed62c18c9a56",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.73148512840271,
+          "box": [
+            197,
+            197,
+            272,
+            273
+          ],
+          "morphology": {
+            "area": 3979,
+            "box_area": 5852,
+            "box_fill_ratio": 0.6799384825700615,
+            "aspect_ratio": 0.987012987012987,
+            "log_area": 8.289037098278483,
+            "norm_centroid_x": 0.48256262042389214,
+            "norm_centroid_y": 0.4816772430258859,
+            "crop_mean_intensity": 0.270898699760437,
+            "crop_std_intensity": 0.12456401437520981,
+            "contrast": 0.022373110055923462,
+            "hist_8": [
+              0.19703440613219714,
+              0.10580546553782523,
+              0.47423969945338773,
+              0.20809245953757552,
+              0.01482784433903014,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "f8e96d0d096549408338dfc71a8be89f",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.8337435722351074,
+          "box": [
+            220,
+            195,
+            290,
+            278
+          ],
+          "morphology": {
+            "area": 3870,
+            "box_area": 5964,
+            "box_fill_ratio": 0.6488933601609658,
+            "aspect_ratio": 0.8452380952380952,
+            "log_area": 8.261268150577648,
+            "norm_centroid_x": 0.5373374246339362,
+            "norm_centroid_y": 0.48952627045650304,
+            "crop_mean_intensity": 0.25429803133010864,
+            "crop_std_intensity": 0.11663322150707245,
+            "contrast": 0.09599131345748901,
+            "hist_8": [
+              0.19095604848191516,
+              0.24935397399871193,
+              0.3808785053617631,
+              0.17751935765504157,
+              0.0012919895025839997,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "863ec33a5a564b6f9c4b515075e6e55f",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.8794656991958618,
+          "box": [
+            180,
+            191,
+            277,
+            273
+          ],
+          "morphology": {
+            "area": 5729,
+            "box_area": 8134,
+            "box_fill_ratio": 0.7043275141381854,
+            "aspect_ratio": 1.180722891566265,
+            "log_area": 8.653470809708786,
+            "norm_centroid_x": 0.4676376040030255,
+            "norm_centroid_y": 0.49077064060045383,
+            "crop_mean_intensity": 0.2660594880580902,
+            "crop_std_intensity": 0.11873379349708557,
+            "contrast": 0.08754536509513855,
+            "hist_8": [
+              0.1406877115116098,
+              0.29778317101588875,
+              0.3840111232326819,
+              0.14697152989178097,
+              0.030546339348054244,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "fe057a28f92045369a7fcd6ff68be5b2",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.8832666873931885,
+          "box": [
+            177,
+            196,
+            276,
+            267
+          ],
+          "morphology": {
+            "area": 4469,
+            "box_area": 7200,
+            "box_fill_ratio": 0.6206944444444444,
+            "aspect_ratio": 1.3888888888888888,
+            "log_area": 8.405143687607614,
+            "norm_centroid_x": 0.4709424181397777,
+            "norm_centroid_y": 0.47954007235026475,
+            "crop_mean_intensity": 0.2809858024120331,
+            "crop_std_intensity": 0.09898995608091354,
+            "contrast": 0.07672417163848877,
+            "hist_8": [
+              0.08525396114902796,
+              0.2494965004755018,
+              0.5097336574737158,
+              0.14388004466883197,
+              0.0116357112329382,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "42ccaa845bf44914963b37894be9d2c9",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 1.9358850717544556,
+          "box": [
+            212,
+            214,
+            271,
+            264
+          ],
+          "morphology": {
+            "area": 1835,
+            "box_area": 3060,
+            "box_fill_ratio": 0.5996732026143791,
+            "aspect_ratio": 1.1764705882352942,
+            "log_area": 7.515344571180436,
+            "norm_centroid_x": 0.5080653950953679,
+            "norm_centroid_y": 0.5014645776566757,
+            "crop_mean_intensity": 0.3074980080127716,
+            "crop_std_intensity": 0.11976202577352524,
+            "contrast": 0.07908540964126587,
+            "hist_8": [
+              0.11607627976839419,
+              0.14877382336512496,
+              0.40435962247957036,
+              0.31553129570845184,
+              0.015258853678474354,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae5c50f52a4975834893",
+      "sam_initial_response_id": "resp_6ae1ae5c50f52a4975834893",
+      "sam_refined_response_id": "resp_6ae1ae5c9708a5091fe74910",
+      "triage_response_id": "chatcmpl-01a18191-3253-74e5-a99b-1c77e0a33031",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 1385,
+        "prompt_tokens": 1323,
+        "total_tokens": 2708,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1049,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 625,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 3,
+      "role": "nominal_c3_1_perturbed",
+      "perturbed": true,
+      "iou_gt_initial": 0.0513,
+      "iou_gt_final": 0.8518,
+      "delta_iou_gt": 0.8005,
+      "iou_proxy_initial": 0.0584,
+      "iou_proxy_final": 0.7729
+    },
+    {
+      "image_id": "1bf20f9c19b642438dc547aa16f09207",
+      "decision": "ACCEPT_NOMINAL",
+      "confidence": 0.84,
+      "rationale": "Compact smooth elliptical particle matches nominal process variation morphology. All 5 neighbors are class_3/class_4 with comparable aspect ratios, mask agreement is moderate-good (IoU 0.725), and all three baselines unanimously vote ACCEPT with low rare probability.",
+      "cited_evidence": [
+        "Top-5 neighbors unanimous nominal: 3x class_4, 2x class_3, zero rare classes",
+        "#1 class_4 d=1.929 aspect 1.63 vs query 1.76",
+        "#2 class_3 d=2.003 aspect 1.56 smooth dome morphology similar to query oval",
+        "U-Net Max Confidence ACCEPT_NOMINAL max_prob=1.000",
+        "U-Net/SAM Agreement Proxy IoU=0.725 discordance=0.275 ACCEPT_NOMINAL",
+        "k-NN & Logistic Scorer P(rare)=0.336 ACCEPT_NOMINAL",
+        "Query morphology compact elliptical: Area 1471px, Aspect 1.76, Fill 0.58, Mean Intensity 0.26 Std 0.14"
+      ],
+      "is_empty_scan": false,
+      "empty_scan_reason": null,
+      "initial_box": [
+        220,
+        238,
+        318,
+        293
+      ],
+      "refined_box": [
+        210,
+        222,
+        276,
+        259
+      ],
+      "initial_unet_sam_iou": 0.04479917610710608,
+      "final_unet_sam_iou": 0.72534516765286,
+      "refinement_triggered": true,
+      "refinement_accepted": true,
+      "refinement_strategy": "composite_box_and_point",
+      "refinement_reasons": [
+        "U-Net/SAM mask agreement 0.0448 < 0.65"
+      ],
+      "delta_iou_proxy": 0.6805,
+      "baseline1": {
+        "baseline_name": "Baseline 1 (U-Net Max Confidence)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 1.0,
+        "details": {
+          "max_prob": 1.0,
+          "cutoff": 0.9
+        }
+      },
+      "baseline2": {
+        "baseline_name": "Baseline 2 (U-Net/SAM Discordance)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.27465483234714005,
+        "details": {
+          "unet_sam_iou": 0.72534516765286,
+          "discordance": 0.27465483234714005,
+          "cutoff": 0.35
+        }
+      },
+      "baseline3": {
+        "baseline_name": "Baseline 3 (Non-LLM k-NN & Logistic)",
+        "decision": "ACCEPT_NOMINAL",
+        "score": 0.335935415891705,
+        "details": {
+          "p_knn_rare": 0.0,
+          "p_lr_rare": 0.6719,
+          "p_combined": 0.3359,
+          "top5_classes": [
+            "class_4",
+            "class_3",
+            "class_3",
+            "class_4",
+            "class_4"
+          ],
+          "top5_dists": [
+            1.9292,
+            2.0035,
+            2.0444,
+            2.0765,
+            2.1496
+          ],
+          "cutoff": 0.5
+        }
+      },
+      "retrieved_neighbors": [
+        {
+          "rank": 1,
+          "id": "d93fd87a79d9411e8bbe5b2de5c7b79d",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 1.9291694164276123,
+          "box": [
+            201,
+            209,
+            288,
+            262
+          ],
+          "morphology": {
+            "area": 3421,
+            "box_area": 4752,
+            "box_fill_ratio": 0.7199074074074074,
+            "aspect_ratio": 1.6296296296296295,
+            "log_area": 8.137980454452139,
+            "norm_centroid_x": 0.5098819789535224,
+            "norm_centroid_y": 0.49601298353308,
+            "crop_mean_intensity": 0.2772839069366455,
+            "crop_std_intensity": 0.1306486576795578,
+            "contrast": 0.144566148519516,
+            "hist_8": [
+              0.0935398889213695,
+              0.4296988647325411,
+              0.20608006777989216,
+              0.22829579139871742,
+              0.026600405912014447,
+              0.011984798268050465,
+              0.003800057987430636,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 2,
+          "id": "03252083999f47ee9fbdaf5f8ec9fe1e",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 2.003467321395874,
+          "box": [
+            213,
+            213,
+            287,
+            260
+          ],
+          "morphology": {
+            "area": 2491,
+            "box_area": 3600,
+            "box_fill_ratio": 0.6919444444444445,
+            "aspect_ratio": 1.5625,
+            "log_area": 7.820840879907344,
+            "norm_centroid_x": 0.5225712565234846,
+            "norm_centroid_y": 0.499713970293055,
+            "crop_mean_intensity": 0.2607221305370331,
+            "crop_std_intensity": 0.15492287278175354,
+            "contrast": 0.10286986827850342,
+            "hist_8": [
+              0.13488557125652562,
+              0.4745081703131347,
+              0.16298673193496843,
+              0.13207545518868133,
+              0.06583700501806607,
+              0.028101160678442837,
+              0.0016057806101967334,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 3,
+          "id": "5fd4d5b960424cf19f3095d91da33d9b",
+          "class_label": 3,
+          "class_name": "class_3",
+          "distance": 2.044423818588257,
+          "box": [
+            207,
+            214,
+            296,
+            277
+          ],
+          "morphology": {
+            "area": 3738,
+            "box_area": 5760,
+            "box_fill_ratio": 0.6489583333333333,
+            "aspect_ratio": 1.40625,
+            "log_area": 8.226573474977114,
+            "norm_centroid_x": 0.5267455858747994,
+            "norm_centroid_y": 0.5181564339218834,
+            "crop_mean_intensity": 0.25310173630714417,
+            "crop_std_intensity": 0.13357694447040558,
+            "contrast": 0.11726537346839905,
+            "hist_8": [
+              0.09363294709737975,
+              0.48956655196629983,
+              0.24371318515917986,
+              0.11209201381086317,
+              0.04654895084269736,
+              0.011503476357678084,
+              0.0029427497659176493,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 4,
+          "id": "6597aba611a74275bfb445bee214db62",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 2.076531171798706,
+          "box": [
+            199,
+            206,
+            291,
+            261
+          ],
+          "morphology": {
+            "area": 3767,
+            "box_area": 5208,
+            "box_fill_ratio": 0.723310291858679,
+            "aspect_ratio": 1.6607142857142858,
+            "log_area": 8.234299635696253,
+            "norm_centroid_x": 0.5145153083797894,
+            "norm_centroid_y": 0.4890048447040085,
+            "crop_mean_intensity": 0.27365410327911377,
+            "crop_std_intensity": 0.1388660967350006,
+            "contrast": 0.12923333048820496,
+            "hist_8": [
+              0.10990176486594279,
+              0.3923546098354189,
+              0.21874167693124846,
+              0.22909474173746044,
+              0.03026280481815816,
+              0.01247677040748626,
+              0.007167506404300617,
+              0.0
+            ]
+          }
+        },
+        {
+          "rank": 5,
+          "id": "7132f72085f14788a89ef946ead0950c",
+          "class_label": 4,
+          "class_name": "class_4",
+          "distance": 2.1495628356933594,
+          "box": [
+            206,
+            215,
+            280,
+            272
+          ],
+          "morphology": {
+            "area": 3038,
+            "box_area": 4350,
+            "box_fill_ratio": 0.6983908045977012,
+            "aspect_ratio": 1.293103448275862,
+            "log_area": 8.019283792916793,
+            "norm_centroid_x": 0.5059393515470705,
+            "norm_centroid_y": 0.5054888084265964,
+            "crop_mean_intensity": 0.2607843279838562,
+            "crop_std_intensity": 0.13185544312000275,
+            "contrast": 0.13695600628852844,
+            "hist_8": [
+              0.1560236802995416,
+              0.3722843510944759,
+              0.21856481797235366,
+              0.2159315069124458,
+              0.027649766129032693,
+              0.006254113767281204,
+              0.0032916388248848444,
+              0.0
+            ]
+          }
+        }
+      ],
+      "sam_response_id": "resp_6ae1ae632836653d724f4c91",
+      "sam_initial_response_id": "resp_6ae1ae632836653d724f4c91",
+      "sam_refined_response_id": "resp_6ae1ae65c7e91df554e647c4",
+      "triage_response_id": "chatcmpl-01a18191-595f-7621-bd98-c4539d1a5c53",
+      "triage_model": "muse-spark-1.3",
+      "token_usage": {
+        "completion_tokens": 2087,
+        "prompt_tokens": 1313,
+        "total_tokens": 3400,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1732,
+          "rejected_prediction_tokens": null,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 113,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      },
+      "true_label": 4,
+      "role": "nominal_c4_1_perturbed",
+      "perturbed": true,
+      "iou_gt_initial": 0.0326,
+      "iou_gt_final": 0.8334,
+      "delta_iou_gt": 0.8008,
+      "iou_proxy_initial": 0.0448,
+      "iou_proxy_final": 0.7253
+    }
+  ]
+}
