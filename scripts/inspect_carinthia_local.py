@@ -7,7 +7,6 @@ CC BY 4.0, single production layer of unstructured wafers).
 from pathlib import Path
 import csv
 import json
-import re
 import sys
 from html.parser import HTMLParser
 import numpy as np
@@ -99,8 +98,8 @@ def inspect_html_metadata(html_path: Path):
         print(f"  - Class {k}: {v}")
 
     print("\nPhysical Scale / Pixel Size Analysis:")
-    print(f"  Physical scale mentioned: False (ABSENT)")
-    print(f"  Physical units (nm, um, µm) present: None for pixel dimensions.")
+    print("  Physical scale mentioned: False (ABSENT)")
+    print("  Physical units (nm, um, µm) present: None for pixel dimensions.")
     print("  Scale notes: Physical pixel size (nm/um) is completely absent from the dataset metadata.")
     print("  The only geometric/spatial dimension mentioned in the metadata is the artifact: 'three-pixel wide black border' on the right side of the images.")
 

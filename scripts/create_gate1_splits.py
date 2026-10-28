@@ -83,25 +83,61 @@ def create_gate1_splits(
         lbl = r["class_label"]
         by_class.setdefault(lbl, []).append(r)
 
-    # 1. Rare Holdout (Classes 1, 2, 5)
+    # 1. Rare Partition: rare_dev (17) and rare_eval_test (50) across Classes 1, 2, 5
     rare_records = []
     for lbl in [1, 2, 5]:
         rare_records.extend(by_class.get(lbl, []))
-    rare_records = sorted(rare_records, key=lambda r: r["id"])
+    rare_records = sorted(rare_records, key=lambda r: r['id'])
 
-    # Stratified fold assignment (seed=42)
+    # Separate gate0 and non-gate0 per class
+    c1_g0 = [r.copy() for r in rare_records if r['class_label'] == 1 and r['id'] in gate0_ids]
+    c1_non_g0 = [r.copy() for r in rare_records if r['class_label'] == 1 and r['id'] not in gate0_ids]
+
+    c2_g0 = [r.copy() for r in rare_records if r['class_label'] == 2 and r['id'] in gate0_ids]
+    c2_non_g0 = [r.copy() for r in rare_records if r['class_label'] == 2 and r['id'] not in gate0_ids]
+
+    c5_g0 = [r.copy() for r in rare_records if r['class_label'] == 5 and r['id'] in gate0_ids]
+    c5_non_g0 = [r.copy() for r in rare_records if r['class_label'] == 5 and r['id'] not in gate0_ids]
+
+    # Deterministic shuffle with seed=42
     rng = random.Random(seed)
-    rare_holdout = []
-    for lbl in [1, 2, 5]:
-        cls_records = [r.copy() for r in rare_records if r["class_label"] == lbl]
-        rng.shuffle(cls_records)
-        for i, r in enumerate(cls_records):
-            r["seen_in_gate0"] = r["id"] in gate0_ids
-            r["fold"] = i % 5  # Stratified round-robin fold (0..4)
-            rare_holdout.append(r)
+    rng.shuffle(c1_non_g0)
+    rng.shuffle(c2_non_g0)
+    rng.shuffle(c5_non_g0)
 
-    # Sort rare_holdout deterministically by id
-    rare_holdout = sorted(rare_holdout, key=lambda r: r["id"])
+    # Guarantee the 3 pre-registered sharpened test samples stay in rare_eval_test
+    sharpened_ids = {
+        'd1147ea97bb0410487f432a49def8265',
+        '20cc9526c58743019f12544ca3f6ffee',
+        '75e64833559e418b8ee5a3760b0b6f21',
+    }
+    c1_non_g0 = [s for s in c1_non_g0 if s['id'] not in sharpened_ids] + [s for s in c1_non_g0 if s['id'] in sharpened_ids]
+    c2_non_g0 = [s for s in c2_non_g0 if s['id'] not in sharpened_ids] + [s for s in c2_non_g0 if s['id'] in sharpened_ids]
+    c5_non_g0 = [s for s in c5_non_g0 if s['id'] not in sharpened_ids] + [s for s in c5_non_g0 if s['id'] in sharpened_ids]
+
+    # rare_dev: 6 gate0 + 10 C1 + 1 C2 + 0 C5 = 17 images (stratified dev partition)
+    dev_c1 = c1_g0 + c1_non_g0[:10]
+    dev_c2 = c2_g0 + c2_non_g0[:1]
+    dev_c5 = c5_g0
+    rare_dev = dev_c1 + dev_c2 + dev_c5
+    for r in rare_dev:
+        r['split'] = 'rare_dev'
+        r['seen_in_gate0'] = r['id'] in gate0_ids
+
+    # rare_eval_test: 43 C1 + 5 C2 + 2 C5 = 50 images (strictly frozen unseen test split)
+    test_c1 = c1_non_g0[10:]
+    test_c2 = c2_non_g0[1:]
+    test_c5 = c5_non_g0
+    rare_eval_test = test_c1 + test_c2 + test_c5
+    for r in rare_eval_test:
+        r['split'] = 'rare_eval_test'
+        r['seen_in_gate0'] = False
+
+    assert len(rare_dev) == 17, f'Expected 17 rare_dev, got {len(rare_dev)}'
+    assert len(rare_eval_test) == 50, f'Expected 50 rare_eval_test, got {len(rare_eval_test)}'
+    assert all(sid in {s['id'] for s in rare_eval_test} for sid in sharpened_ids), 'Sharpened test rare samples missing from rare_eval_test!'
+
+    rare_holdout = sorted(rare_dev + rare_eval_test, key=lambda r: r['id'])
 
     # 2. Class 6 (227 total: 1 in Gate 0)
     class6_all = [r.copy() for r in by_class.get(6, [])]
@@ -172,7 +208,8 @@ def create_gate1_splits(
         "class6_train": sorted(class6_train, key=lambda r: r["id"]),
         "class6_val": sorted(class6_val, key=lambda r: r["id"]),
         "class6_test": sorted(class6_test, key=lambda r: r["id"]),
-        "rare_holdout": sorted(rare_holdout, key=lambda r: r["id"]),
+        "rare_dev": sorted(rare_dev, key=lambda r: r["id"]),
+        "rare_eval_test": sorted(rare_eval_test, key=lambda r: r["id"]),
     }
 
     return splits
@@ -198,10 +235,11 @@ def audit_splits(splits: Dict[str, List[Dict[str, Any]]], gate0_ids: set[str]) -
         g0_in_splits[split_name] = g0_here
 
     leakage_in_train_or_test = (
-        len(g0_in_splits["nominal_train"])
-        + len(g0_in_splits["class6_train"])
-        + len(g0_in_splits["nominal_test"])
-        + len(g0_in_splits["class6_test"])
+        len(g0_in_splits.get("nominal_train", []))
+        + len(g0_in_splits.get("class6_train", []))
+        + len(g0_in_splits.get("nominal_test", []))
+        + len(g0_in_splits.get("class6_test", []))
+        + len(g0_in_splits.get("rare_eval_test", []))
     )
 
     class_breakdown: Dict[str, Dict[int, int]] = {}
@@ -287,11 +325,13 @@ def main():
                 "mask_path_template": "data/carinthia_s/masks/{id}.png",
             },
             "rare_holdout_loo_index": {
-                "all_rare_ids": [r["id"] for r in splits["rare_holdout"]],
+                "all_rare_ids": [r["id"] for r in splits["rare_dev"] + splits["rare_eval_test"]],
+                "rare_dev_ids": [r["id"] for r in splits["rare_dev"]],
+                "rare_eval_test_ids": [r["id"] for r in splits["rare_eval_test"]],
                 "description": (
                     "Leave-One-Out (LOO) candidate pool for sample i is all_rare_ids excluding sample i. "
                     "Same-class candidate pool is all IDs of same class excluding sample i. "
-                    "Stratified 5-fold CV fold index (0..4) is precomputed on each sample."
+                    "Stratified rare_dev (17 images) and rare_eval_test (50 images) partitions."
                 ),
             },
             "audit_summary": audit,

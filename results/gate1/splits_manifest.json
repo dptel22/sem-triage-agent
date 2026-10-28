@@ -10,48 +10,50 @@
     },
     "rare_holdout_loo_index": {
       "all_rare_ids": [
+        "0c15addfbe4742b9839ee18abc3b2d5e",
+        "0ef66cd9512e4feaa62e4ec3cb75cdc1",
+        "1079519b735f41aabc8e7c642cb5e487",
+        "2326638fa4b8488da13180531ba50db4",
+        "39046b8e96ed4c2eafc28a4f1f622666",
+        "4085455e942a4d3fb413638a5d04d0f7",
+        "434a4fab1a67484f81e929a5f37c5300",
+        "4d653436c00e460ebbc75f44416bed7b",
+        "65dec6457eb447ce9f34d51834cf7e94",
+        "6e73f1c79c9b48688541c6a01dc2ab13",
+        "79f56519acd14e66a8a9a7ebdff3860c",
+        "811a6499bd844091aecd4000549aa060",
+        "8ec28f8dec32414b9a02af4499854fb9",
+        "90c6f13b7d224c579ac0de7dfb47b924",
+        "a957d7c6b94a4575af8120fb89572f7a",
+        "c8f6ce1edd5741b6867562c7d2a7f80e",
+        "ca4dfbc65eff4912a98bcc754c6523cc",
         "0149a2fcc66647119759fddb9ec44061",
         "066175ba993a43bf84007494066c3565",
         "06c0ca868a9a4fce93afdbaa3dadce50",
-        "0c15addfbe4742b9839ee18abc3b2d5e",
         "0e84963d88c8455883718e26e1023e7b",
-        "0ef66cd9512e4feaa62e4ec3cb75cdc1",
-        "1079519b735f41aabc8e7c642cb5e487",
         "1343a6294b7d42c79f319f7abbac94f3",
         "14ae6c06e5cc4dc68ef31c27abc620d0",
         "164c6e90e400436781243fc9bff0ec66",
         "20cc9526c58743019f12544ca3f6ffee",
-        "2326638fa4b8488da13180531ba50db4",
         "2328a26fb16a49b5b2964a1735454eb0",
         "34afa0677bd440a5aaab92708f4feaff",
         "386f945dfd944c6caae354d3a06de243",
-        "39046b8e96ed4c2eafc28a4f1f622666",
         "39c90ffde2ff46e782a909b27362abff",
-        "4085455e942a4d3fb413638a5d04d0f7",
-        "434a4fab1a67484f81e929a5f37c5300",
         "44b691ece9644c99bfcc153bc0a9864d",
         "4a3f8f2eb2874387ac51913819153f6b",
         "4a7b822d5e1646f5a8566dfd83f157a1",
         "4beeb8dfc4df4dceb7eb1d850a87923e",
-        "4d653436c00e460ebbc75f44416bed7b",
         "603981d116e24661b39d83cb7743276b",
         "635b1718b3f64a89a865dbd2f61e00f0",
-        "65dec6457eb447ce9f34d51834cf7e94",
         "6942283e03ad493fb8ed048e3033fcfe",
-        "6e73f1c79c9b48688541c6a01dc2ab13",
         "736ddd62ac72463ab0c1013bb1723377",
         "75e64833559e418b8ee5a3760b0b6f21",
         "78a1c469a2cb40a9af0ea0c59c68f405",
-        "79f56519acd14e66a8a9a7ebdff3860c",
-        "811a6499bd844091aecd4000549aa060",
         "8620228ce4ba44028b3cac12ad40a3a5",
-        "8ec28f8dec32414b9a02af4499854fb9",
-        "90c6f13b7d224c579ac0de7dfb47b924",
         "96e16114c7c74c748c7873d132aa8d7e",
         "99649bce22cc4d0ab996afa48298b74e",
         "a388040b307b4184a532d3e5dda02ffc",
         "a50d07ada0434445be101016e4fe33c6",
-        "a957d7c6b94a4575af8120fb89572f7a",
         "aab1993c0a7e434182f5423965e7839b",
         "ac2b8b1530214c5bbee802f6d57b58c2",
         "b9af1dc66f1242e59aac685436078def",
@@ -60,8 +62,6 @@
         "c3c3280055d247029d8338100c629602",
         "c4d3868a9b784cf7acc4407e3ec652c4",
         "c5f116c34bd54299ac3b3d341cfaab51",
-        "c8f6ce1edd5741b6867562c7d2a7f80e",
-        "ca4dfbc65eff4912a98bcc754c6523cc",
         "d1147ea97bb0410487f432a49def8265",
         "dc778b378cc94f329287804ecb19476b",
         "e272332d1326457280a6773bfe48cbb2",
@@ -78,7 +78,78 @@
         "fb6a4f0480b442a0a8522706250c7c7f",
         "feb00cbdf48042be8f7831566f963df8"
       ],
-      "description": "Leave-One-Out (LOO) candidate pool for sample i is all_rare_ids excluding sample i. Same-class candidate pool is all IDs of same class excluding sample i. Stratified 5-fold CV fold index (0..4) is precomputed on each sample."
+      "rare_dev_ids": [
+        "0c15addfbe4742b9839ee18abc3b2d5e",
+        "0ef66cd9512e4feaa62e4ec3cb75cdc1",
+        "1079519b735f41aabc8e7c642cb5e487",
+        "2326638fa4b8488da13180531ba50db4",
+        "39046b8e96ed4c2eafc28a4f1f622666",
+        "4085455e942a4d3fb413638a5d04d0f7",
+        "434a4fab1a67484f81e929a5f37c5300",
+        "4d653436c00e460ebbc75f44416bed7b",
+        "65dec6457eb447ce9f34d51834cf7e94",
+        "6e73f1c79c9b48688541c6a01dc2ab13",
+        "79f56519acd14e66a8a9a7ebdff3860c",
+        "811a6499bd844091aecd4000549aa060",
+        "8ec28f8dec32414b9a02af4499854fb9",
+        "90c6f13b7d224c579ac0de7dfb47b924",
+        "a957d7c6b94a4575af8120fb89572f7a",
+        "c8f6ce1edd5741b6867562c7d2a7f80e",
+        "ca4dfbc65eff4912a98bcc754c6523cc"
+      ],
+      "rare_eval_test_ids": [
+        "0149a2fcc66647119759fddb9ec44061",
+        "066175ba993a43bf84007494066c3565",
+        "06c0ca868a9a4fce93afdbaa3dadce50",
+        "0e84963d88c8455883718e26e1023e7b",
+        "1343a6294b7d42c79f319f7abbac94f3",
+        "14ae6c06e5cc4dc68ef31c27abc620d0",
+        "164c6e90e400436781243fc9bff0ec66",
+        "20cc9526c58743019f12544ca3f6ffee",
+        "2328a26fb16a49b5b2964a1735454eb0",
+        "34afa0677bd440a5aaab92708f4feaff",
+        "386f945dfd944c6caae354d3a06de243",
+        "39c90ffde2ff46e782a909b27362abff",
+        "44b691ece9644c99bfcc153bc0a9864d",
+        "4a3f8f2eb2874387ac51913819153f6b",
+        "4a7b822d5e1646f5a8566dfd83f157a1",
+        "4beeb8dfc4df4dceb7eb1d850a87923e",
+        "603981d116e24661b39d83cb7743276b",
+        "635b1718b3f64a89a865dbd2f61e00f0",
+        "6942283e03ad493fb8ed048e3033fcfe",
+        "736ddd62ac72463ab0c1013bb1723377",
+        "75e64833559e418b8ee5a3760b0b6f21",
+        "78a1c469a2cb40a9af0ea0c59c68f405",
+        "8620228ce4ba44028b3cac12ad40a3a5",
+        "96e16114c7c74c748c7873d132aa8d7e",
+        "99649bce22cc4d0ab996afa48298b74e",
+        "a388040b307b4184a532d3e5dda02ffc",
+        "a50d07ada0434445be101016e4fe33c6",
+        "aab1993c0a7e434182f5423965e7839b",
+        "ac2b8b1530214c5bbee802f6d57b58c2",
+        "b9af1dc66f1242e59aac685436078def",
+        "bfba5a30d1e74d5e841a0a619ab4ba43",
+        "c067c3081f9f47b6b40b1f6a0fcf0041",
+        "c3c3280055d247029d8338100c629602",
+        "c4d3868a9b784cf7acc4407e3ec652c4",
+        "c5f116c34bd54299ac3b3d341cfaab51",
+        "d1147ea97bb0410487f432a49def8265",
+        "dc778b378cc94f329287804ecb19476b",
+        "e272332d1326457280a6773bfe48cbb2",
+        "e3cbdc00afc544058c3ff04dc04aca43",
+        "e45b736fa795471b94454a39639a03a2",
+        "e5c9e764a02344a7aadc34fac61d0f3a",
+        "e5e1e05097cc47c6a631f640365134d3",
+        "e9cca73be4e742c4848e54622a87907a",
+        "ea72806fc07c48a5a88a21b3f36ed865",
+        "f42c3d4127cd4fa192f625f89b49165e",
+        "f4b1143960794846a276057065dbfaf2",
+        "f63ffe75c5e649daa5abceb26c3b80af",
+        "f8d6c8cd1bab4da5881a880ead12b0c7",
+        "fb6a4f0480b442a0a8522706250c7c7f",
+        "feb00cbdf48042be8f7831566f963df8"
+      ],
+      "description": "Leave-One-Out (LOO) candidate pool for sample i is all_rare_ids excluding sample i. Same-class candidate pool is all IDs of same class excluding sample i. Stratified rare_dev (17 images) and rare_eval_test (50 images) partitions."
     },
     "audit_summary": {
       "total_samples": 4591,
@@ -94,7 +165,8 @@
         "class6_train": 0,
         "class6_val": 1,
         "class6_test": 0,
-        "rare_holdout": 6
+        "rare_dev": 6,
+        "rare_eval_test": 0
       },
       "gate0_leakage_count": 0,
       "split_counts": {
@@ -104,7 +176,8 @@
         "class6_train": 181,
         "class6_val": 23,
         "class6_test": 23,
-        "rare_holdout": 67
+        "rare_dev": 17,
+        "rare_eval_test": 50
       },
       "class_breakdown": {
         "nominal_train": {
@@ -128,10 +201,15 @@
         "class6_test": {
           "6": 23
         },
-        "rare_holdout": {
-          "1": 55,
-          "2": 8,
-          "5": 4
+        "rare_dev": {
+          "1": 12,
+          "2": 3,
+          "5": 2
+        },
+        "rare_eval_test": {
+          "1": 43,
+          "2": 5,
+          "5": 2
         }
       }
     }
@@ -18259,347 +18337,282 @@
         "class_label": 6
       }
     ],
-    "rare_holdout": [
-      {
-        "id": "0149a2fcc66647119759fddb9ec44061",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "066175ba993a43bf84007494066c3565",
-        "class_label": 1,
-        "fold": 2
-      },
-      {
-        "id": "06c0ca868a9a4fce93afdbaa3dadce50",
-        "class_label": 1,
-        "fold": 0
-      },
+    "rare_dev": [
       {
         "id": "0c15addfbe4742b9839ee18abc3b2d5e",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "0e84963d88c8455883718e26e1023e7b",
-        "class_label": 1,
-        "fold": 4
+        "class_label": 1
       },
       {
         "id": "0ef66cd9512e4feaa62e4ec3cb75cdc1",
         "class_label": 5,
-        "seen_in_gate0": true,
-        "fold": 2
+        "seen_in_gate0": true
       },
       {
         "id": "1079519b735f41aabc8e7c642cb5e487",
         "class_label": 1,
-        "seen_in_gate0": true,
-        "fold": 3
-      },
-      {
-        "id": "1343a6294b7d42c79f319f7abbac94f3",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "14ae6c06e5cc4dc68ef31c27abc620d0",
-        "class_label": 1,
-        "fold": 3
-      },
-      {
-        "id": "164c6e90e400436781243fc9bff0ec66",
-        "class_label": 1,
-        "fold": 2
-      },
-      {
-        "id": "20cc9526c58743019f12544ca3f6ffee",
-        "class_label": 2,
-        "fold": 4
+        "seen_in_gate0": true
       },
       {
         "id": "2326638fa4b8488da13180531ba50db4",
         "class_label": 2,
-        "seen_in_gate0": true,
-        "fold": 0
-      },
-      {
-        "id": "2328a26fb16a49b5b2964a1735454eb0",
-        "class_label": 2,
-        "fold": 2
-      },
-      {
-        "id": "34afa0677bd440a5aaab92708f4feaff",
-        "class_label": 1,
-        "fold": 0
-      },
-      {
-        "id": "386f945dfd944c6caae354d3a06de243",
-        "class_label": 2,
-        "fold": 1
+        "seen_in_gate0": true
       },
       {
         "id": "39046b8e96ed4c2eafc28a4f1f622666",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "39c90ffde2ff46e782a909b27362abff",
-        "class_label": 1,
-        "fold": 3
+        "class_label": 1
       },
       {
         "id": "4085455e942a4d3fb413638a5d04d0f7",
         "class_label": 5,
-        "seen_in_gate0": true,
-        "fold": 0
+        "seen_in_gate0": true
       },
       {
         "id": "434a4fab1a67484f81e929a5f37c5300",
-        "class_label": 1,
-        "fold": 3
-      },
-      {
-        "id": "44b691ece9644c99bfcc153bc0a9864d",
-        "class_label": 1,
-        "fold": 2
-      },
-      {
-        "id": "4a3f8f2eb2874387ac51913819153f6b",
-        "class_label": 1,
-        "fold": 3
-      },
-      {
-        "id": "4a7b822d5e1646f5a8566dfd83f157a1",
-        "class_label": 1,
-        "fold": 4
-      },
-      {
-        "id": "4beeb8dfc4df4dceb7eb1d850a87923e",
-        "class_label": 1,
-        "fold": 4
+        "class_label": 1
       },
       {
         "id": "4d653436c00e460ebbc75f44416bed7b",
-        "class_label": 1,
-        "fold": 0
-      },
-      {
-        "id": "603981d116e24661b39d83cb7743276b",
-        "class_label": 1,
-        "fold": 4
-      },
-      {
-        "id": "635b1718b3f64a89a865dbd2f61e00f0",
-        "class_label": 1,
-        "fold": 4
+        "class_label": 1
       },
       {
         "id": "65dec6457eb447ce9f34d51834cf7e94",
-        "class_label": 1,
-        "fold": 0
-      },
-      {
-        "id": "6942283e03ad493fb8ed048e3033fcfe",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
       },
       {
         "id": "6e73f1c79c9b48688541c6a01dc2ab13",
-        "class_label": 1,
-        "fold": 3
-      },
-      {
-        "id": "736ddd62ac72463ab0c1013bb1723377",
-        "class_label": 2,
-        "fold": 1
-      },
-      {
-        "id": "75e64833559e418b8ee5a3760b0b6f21",
-        "class_label": 5,
-        "fold": 3
-      },
-      {
-        "id": "78a1c469a2cb40a9af0ea0c59c68f405",
-        "class_label": 1,
-        "fold": 1
+        "class_label": 1
       },
       {
         "id": "79f56519acd14e66a8a9a7ebdff3860c",
-        "class_label": 1,
-        "fold": 0
+        "class_label": 1
       },
       {
         "id": "811a6499bd844091aecd4000549aa060",
         "class_label": 2,
-        "seen_in_gate0": true,
-        "fold": 2
-      },
-      {
-        "id": "8620228ce4ba44028b3cac12ad40a3a5",
-        "class_label": 1,
-        "fold": 2
+        "seen_in_gate0": true
       },
       {
         "id": "8ec28f8dec32414b9a02af4499854fb9",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
       },
       {
         "id": "90c6f13b7d224c579ac0de7dfb47b924",
-        "class_label": 2,
-        "fold": 3
-      },
-      {
-        "id": "96e16114c7c74c748c7873d132aa8d7e",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "99649bce22cc4d0ab996afa48298b74e",
-        "class_label": 1,
-        "fold": 0
-      },
-      {
-        "id": "a388040b307b4184a532d3e5dda02ffc",
-        "class_label": 1,
-        "fold": 4
-      },
-      {
-        "id": "a50d07ada0434445be101016e4fe33c6",
-        "class_label": 1,
-        "fold": 0
+        "class_label": 2
       },
       {
         "id": "a957d7c6b94a4575af8120fb89572f7a",
         "class_label": 1,
-        "seen_in_gate0": true,
-        "fold": 0
-      },
-      {
-        "id": "aab1993c0a7e434182f5423965e7839b",
-        "class_label": 1,
-        "fold": 0
-      },
-      {
-        "id": "ac2b8b1530214c5bbee802f6d57b58c2",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "b9af1dc66f1242e59aac685436078def",
-        "class_label": 1,
-        "fold": 4
-      },
-      {
-        "id": "bfba5a30d1e74d5e841a0a619ab4ba43",
-        "class_label": 1,
-        "fold": 3
-      },
-      {
-        "id": "c067c3081f9f47b6b40b1f6a0fcf0041",
-        "class_label": 1,
-        "fold": 1
-      },
-      {
-        "id": "c3c3280055d247029d8338100c629602",
-        "class_label": 1,
-        "fold": 2
-      },
-      {
-        "id": "c4d3868a9b784cf7acc4407e3ec652c4",
-        "class_label": 1,
-        "fold": 4
-      },
-      {
-        "id": "c5f116c34bd54299ac3b3d341cfaab51",
-        "class_label": 1,
-        "fold": 4
+        "seen_in_gate0": true
       },
       {
         "id": "c8f6ce1edd5741b6867562c7d2a7f80e",
-        "class_label": 1,
-        "fold": 4
+        "class_label": 1
       },
       {
         "id": "ca4dfbc65eff4912a98bcc754c6523cc",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
+      }
+    ],
+    "rare_eval_test": [
+      {
+        "id": "0149a2fcc66647119759fddb9ec44061",
+        "class_label": 1
+      },
+      {
+        "id": "066175ba993a43bf84007494066c3565",
+        "class_label": 1
+      },
+      {
+        "id": "06c0ca868a9a4fce93afdbaa3dadce50",
+        "class_label": 1
+      },
+      {
+        "id": "0e84963d88c8455883718e26e1023e7b",
+        "class_label": 1
+      },
+      {
+        "id": "1343a6294b7d42c79f319f7abbac94f3",
+        "class_label": 1
+      },
+      {
+        "id": "14ae6c06e5cc4dc68ef31c27abc620d0",
+        "class_label": 1
+      },
+      {
+        "id": "164c6e90e400436781243fc9bff0ec66",
+        "class_label": 1
+      },
+      {
+        "id": "20cc9526c58743019f12544ca3f6ffee",
+        "class_label": 2
+      },
+      {
+        "id": "2328a26fb16a49b5b2964a1735454eb0",
+        "class_label": 2
+      },
+      {
+        "id": "34afa0677bd440a5aaab92708f4feaff",
+        "class_label": 1
+      },
+      {
+        "id": "386f945dfd944c6caae354d3a06de243",
+        "class_label": 2
+      },
+      {
+        "id": "39c90ffde2ff46e782a909b27362abff",
+        "class_label": 1
+      },
+      {
+        "id": "44b691ece9644c99bfcc153bc0a9864d",
+        "class_label": 1
+      },
+      {
+        "id": "4a3f8f2eb2874387ac51913819153f6b",
+        "class_label": 1
+      },
+      {
+        "id": "4a7b822d5e1646f5a8566dfd83f157a1",
+        "class_label": 1
+      },
+      {
+        "id": "4beeb8dfc4df4dceb7eb1d850a87923e",
+        "class_label": 1
+      },
+      {
+        "id": "603981d116e24661b39d83cb7743276b",
+        "class_label": 1
+      },
+      {
+        "id": "635b1718b3f64a89a865dbd2f61e00f0",
+        "class_label": 1
+      },
+      {
+        "id": "6942283e03ad493fb8ed048e3033fcfe",
+        "class_label": 1
+      },
+      {
+        "id": "736ddd62ac72463ab0c1013bb1723377",
+        "class_label": 2
+      },
+      {
+        "id": "75e64833559e418b8ee5a3760b0b6f21",
+        "class_label": 5
+      },
+      {
+        "id": "78a1c469a2cb40a9af0ea0c59c68f405",
+        "class_label": 1
+      },
+      {
+        "id": "8620228ce4ba44028b3cac12ad40a3a5",
+        "class_label": 1
+      },
+      {
+        "id": "96e16114c7c74c748c7873d132aa8d7e",
+        "class_label": 1
+      },
+      {
+        "id": "99649bce22cc4d0ab996afa48298b74e",
+        "class_label": 1
+      },
+      {
+        "id": "a388040b307b4184a532d3e5dda02ffc",
+        "class_label": 1
+      },
+      {
+        "id": "a50d07ada0434445be101016e4fe33c6",
+        "class_label": 1
+      },
+      {
+        "id": "aab1993c0a7e434182f5423965e7839b",
+        "class_label": 1
+      },
+      {
+        "id": "ac2b8b1530214c5bbee802f6d57b58c2",
+        "class_label": 1
+      },
+      {
+        "id": "b9af1dc66f1242e59aac685436078def",
+        "class_label": 1
+      },
+      {
+        "id": "bfba5a30d1e74d5e841a0a619ab4ba43",
+        "class_label": 1
+      },
+      {
+        "id": "c067c3081f9f47b6b40b1f6a0fcf0041",
+        "class_label": 1
+      },
+      {
+        "id": "c3c3280055d247029d8338100c629602",
+        "class_label": 1
+      },
+      {
+        "id": "c4d3868a9b784cf7acc4407e3ec652c4",
+        "class_label": 1
+      },
+      {
+        "id": "c5f116c34bd54299ac3b3d341cfaab51",
+        "class_label": 1
       },
       {
         "id": "d1147ea97bb0410487f432a49def8265",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
       },
       {
         "id": "dc778b378cc94f329287804ecb19476b",
-        "class_label": 1,
-        "fold": 0
+        "class_label": 1
       },
       {
         "id": "e272332d1326457280a6773bfe48cbb2",
-        "class_label": 1,
-        "fold": 3
+        "class_label": 1
       },
       {
         "id": "e3cbdc00afc544058c3ff04dc04aca43",
-        "class_label": 1,
-        "fold": 3
+        "class_label": 1
       },
       {
         "id": "e45b736fa795471b94454a39639a03a2",
-        "class_label": 1,
-        "fold": 3
+        "class_label": 1
       },
       {
         "id": "e5c9e764a02344a7aadc34fac61d0f3a",
-        "class_label": 1,
-        "fold": 1
+        "class_label": 1
       },
       {
         "id": "e5e1e05097cc47c6a631f640365134d3",
-        "class_label": 1,
-        "fold": 1
+        "class_label": 1
       },
       {
         "id": "e9cca73be4e742c4848e54622a87907a",
-        "class_label": 5,
-        "fold": 1
+        "class_label": 5
       },
       {
         "id": "ea72806fc07c48a5a88a21b3f36ed865",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
       },
       {
         "id": "f42c3d4127cd4fa192f625f89b49165e",
-        "class_label": 2,
-        "fold": 0
+        "class_label": 2
       },
       {
         "id": "f4b1143960794846a276057065dbfaf2",
-        "class_label": 1,
-        "fold": 1
+        "class_label": 1
       },
       {
         "id": "f63ffe75c5e649daa5abceb26c3b80af",
-        "class_label": 1,
-        "fold": 3
+        "class_label": 1
       },
       {
         "id": "f8d6c8cd1bab4da5881a880ead12b0c7",
-        "class_label": 1,
-        "fold": 4
+        "class_label": 1
       },
       {
         "id": "fb6a4f0480b442a0a8522706250c7c7f",
-        "class_label": 1,
-        "fold": 2
+        "class_label": 1
       },
       {
         "id": "feb00cbdf48042be8f7831566f963df8",
-        "class_label": 1,
-        "fold": 0
+        "class_label": 1
       }
     ]
   }
