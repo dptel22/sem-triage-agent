@@ -1,5 +1,5 @@
 {
-  "manifest_version": "2.0",
+  "manifest_version": "3.0",
   "seed": 42,
   "purpose": "Pre-registered, frozen 10-sample verification suite for Triage Agent mechanism proof (Conditions C1, C2, C3)",
   "composition": {
@@ -7,13 +7,13 @@
     "empty_scan_class6": 1,
     "nominal_test": 6
   },
-  "verbatim_taxonomy_note": "Uses verbatim dataset descriptions only (class 1: ridges, class 4: pits, class 6: no visible defect; classes 2, 3, 5 numerical). Zero invented category labels.",
+  "taxonomy_note": "Strict neutral class_N labels matching dataset text. class_6 explicitly retains verbatim description 'no visible defect' (SEM tool misalignment). Zero inferred analogies.",
   "samples": [
     {
       "role": "rare_c1_unseen",
       "id": "d1147ea97bb0410487f432a49def8265",
       "class_label": 1,
-      "class_name": "class_1 (ridges)",
+      "class_name": "class_1",
       "image_path": "images/d1147ea97bb0410487f432a49def8265.jpg",
       "mask_path": "masks/d1147ea97bb0410487f432a49def8265.png",
       "filename": "d1147ea97bb0410487f432a49def8265",
@@ -43,7 +43,7 @@
       "role": "empty_scan_c6",
       "id": "404e77708f1649dcb94ce4e692741ed4",
       "class_label": 6,
-      "class_name": "class_6 (no visible defect / SEM misalignment)",
+      "class_name": "class_6 (no visible defect)",
       "image_path": "images/404e77708f1649dcb94ce4e692741ed4.jpg",
       "mask_path": "masks/404e77708f1649dcb94ce4e692741ed4.png",
       "filename": "404e77708f1649dcb94ce4e692741ed4",
@@ -93,7 +93,7 @@
       "role": "nominal_c4_1",
       "id": "1bf20f9c19b642438dc547aa16f09207",
       "class_label": 4,
-      "class_name": "class_4 (pits)",
+      "class_name": "class_4",
       "image_path": "images/1bf20f9c19b642438dc547aa16f09207.jpg",
       "mask_path": "masks/1bf20f9c19b642438dc547aa16f09207.png",
       "filename": "1bf20f9c19b642438dc547aa16f09207",
@@ -103,7 +103,7 @@
       "role": "nominal_c4_2",
       "id": "bdc04b42c49c4ceab2543b56b2a441af",
       "class_label": 4,
-      "class_name": "class_4 (pits)",
+      "class_name": "class_4",
       "image_path": "images/bdc04b42c49c4ceab2543b56b2a441af.jpg",
       "mask_path": "masks/bdc04b42c49c4ceab2543b56b2a441af.png",
       "filename": "bdc04b42c49c4ceab2543b56b2a441af",

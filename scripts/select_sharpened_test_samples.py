@@ -12,14 +12,14 @@ with open(csv_path, mode="r", encoding="utf-8") as f:
         filename = row["filename"]
         sid = Path(filename).stem
         label = int(row["label"])
-        # Verbatim dataset class labels (no invented analogies)
+        # Neutral class labels matching exact dataset text (no inferred names)
         class_names = {
-            1: "class_1 (ridges)",
+            1: "class_1",
             2: "class_2",
             3: "class_3",
-            4: "class_4 (pits)",
+            4: "class_4",
             5: "class_5",
-            6: "class_6 (no visible defect / SEM misalignment)",
+            6: "class_6 (no visible defect)",
         }
         samples_by_id[sid] = {
             "id": sid,
@@ -101,7 +101,7 @@ for role, s in selected:
 out_path = Path("results/gate1/sharpened_test_10_manifest.json")
 with open(out_path, "w", encoding="utf-8") as f:
     json.dump({
-        "manifest_version": "2.0",
+        "manifest_version": "3.0",
         "seed": 42,
         "purpose": "Pre-registered, frozen 10-sample verification suite for Triage Agent mechanism proof (Conditions C1, C2, C3)",
         "composition": {
@@ -109,8 +109,8 @@ with open(out_path, "w", encoding="utf-8") as f:
             "empty_scan_class6": 1,
             "nominal_test": 6
         },
-        "verbatim_taxonomy_note": "Uses verbatim dataset descriptions only (class 1: ridges, class 4: pits, class 6: no visible defect; classes 2, 3, 5 numerical). Zero invented category labels.",
+        "taxonomy_note": "Strict neutral class_N labels matching dataset text. class_6 explicitly retains verbatim description 'no visible defect' (SEM tool misalignment). Zero inferred analogies.",
         "samples": manifest
     }, f, indent=2)
 
-print(f"\nSaved updated manifest to {out_path} ({out_path.stat().st_size} bytes)")
+print(f"\nSaved neutral manifest to {out_path} ({out_path.stat().st_size} bytes)")
