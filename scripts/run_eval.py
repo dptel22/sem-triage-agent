@@ -61,7 +61,7 @@ def run_evaluation(
     print("=" * 80)
 
     # 1. Load Precomputed Retrieval Bank
-    bank_cache = PROJECT_ROOT / "outputs" / "gate2" / "retrieval_bank.json"
+    bank_cache = PROJECT_ROOT / "outputs" / "gate3" / "retrieval_bank.json"
     bank = RetrievalBank.load_or_build(
         data_dir=data_p,
         manifest_path=PROJECT_ROOT / "results" / "gate1" / "splits_manifest.json",
@@ -100,6 +100,16 @@ def run_evaluation(
             {"id": splits_manifest["rare_dev"][0]["id"], "class_label": splits_manifest["rare_dev"][0]["class_label"], "role": "rare_clean", "perturb": False},
             {"id": splits_manifest["class6_val"][0]["id"], "class_label": splits_manifest["class6_val"][0]["class_label"], "role": "class6_empty", "perturb": False},
         ]
+    elif mode == "dev-calibration":
+        eval_samples = [
+            {"id": s["id"], "class_label": s["class_label"], "role": "rare_dev", "perturb": False}
+            for s in splits_manifest["rare_dev"]
+        ] + [
+            {"id": s["id"], "class_label": s["class_label"], "role": "nominal_val", "perturb": False}
+            for s in splits_manifest["nominal_val"][:17]
+        ]
+        if output_path is None:
+            output_path = PROJECT_ROOT / "outputs" / "gate3" / "dev_calibration.json"
     elif mode == "full":
         eval_samples = [
             {"id": s["id"], "class_label": s["class_label"], "role": "rare_eval_test", "perturb": False}
@@ -169,20 +179,93 @@ def run_evaluation(
         results_list.append(d)
 
     print("\n" + "=" * 80)
-    print("EVALUATION RESULTS SUMMARY")
+    print(f"EVALUATION RESULTS SUMMARY — MODE: {mode.upper()}")
     print("=" * 80)
     for r in results_list:
+        knn_str = ", ".join([f"{n.get('class_name', '')}({n.get('distance', 0.0):.2f})" for n in r.get("retrieved_neighbors", [])[:3]])
         print(
-            f"{r['image_id'][:8]} | {r['role']:20s} | {r['decision']:20s} | "
+            f"{r['image_id'][:8]} | {r['role']:18s} | {r['decision']:18s} | "
             f"IoU_GT: {r['iou_gt_initial']:.4f} -> {r['iou_gt_final']:.4f} ({r['delta_iou_gt']:+.4f}) | "
-            f"Strategy: {r['refinement_strategy']}"
+            f"Strategy: {r['refinement_strategy']:26s} | Top-3: {knn_str}"
         )
 
-    summary = {
+    summary: Dict[str, Any] = {
         "mode": mode,
+        "triage_model": triage_model,
         "n_samples": len(results_list),
         "results": results_list,
     }
+
+    if mode == "dev-calibration":
+        rare_items = [r for r in results_list if r["role"] == "rare_dev"]
+        nom_items = [r for r in results_list if r["role"] == "nominal_val"]
+
+        # Agent metrics
+        tp = sum(1 for r in rare_items if r["decision"] == "DEFER_RARE_REVIEW")
+        fn = len(rare_items) - tp
+        fp = sum(1 for r in nom_items if r["decision"] == "DEFER_RARE_REVIEW")
+        tn = len(nom_items) - fp
+
+        rare_recall = tp / max(1, len(rare_items))
+        nom_fp_rate = fp / max(1, len(nom_items))
+        precision = tp / max(1, tp + fp)
+        f1 = 2 * precision * rare_recall / max(1e-6, precision + rare_recall)
+
+        # Baseline metrics
+        b1_tp = sum(1 for r in rare_items if r["baseline1"]["decision"] == "DEFER_RARE_REVIEW")
+        b1_fp = sum(1 for r in nom_items if r["baseline1"]["decision"] == "DEFER_RARE_REVIEW")
+        b1_rec = b1_tp / max(1, len(rare_items))
+        b1_fpr = b1_fp / max(1, len(nom_items))
+        b1_p = b1_tp / max(1, b1_tp + b1_fp)
+        b1_f1 = 2 * b1_p * b1_rec / max(1e-6, b1_p + b1_rec)
+
+        b2_tp = sum(1 for r in rare_items if r["baseline2"]["decision"] == "DEFER_RARE_REVIEW")
+        b2_fp = sum(1 for r in nom_items if r["baseline2"]["decision"] == "DEFER_RARE_REVIEW")
+        b2_rec = b2_tp / max(1, len(rare_items))
+        b2_fpr = b2_fp / max(1, len(nom_items))
+        b2_p = b2_tp / max(1, b2_tp + b2_fp)
+        b2_f1 = 2 * b2_p * b2_rec / max(1e-6, b2_p + b2_rec)
+
+        b3_tp = sum(1 for r in rare_items if r["baseline3"]["decision"] == "DEFER_RARE_REVIEW")
+        b3_fp = sum(1 for r in nom_items if r["baseline3"]["decision"] == "DEFER_RARE_REVIEW")
+        b3_rec = b3_tp / max(1, len(rare_items))
+        b3_fpr = b3_fp / max(1, len(nom_items))
+        b3_p = b3_tp / max(1, b3_tp + b3_fp)
+        b3_f1 = 2 * b3_p * b3_rec / max(1e-6, b3_p + b3_rec)
+
+        refined_items = [r for r in results_list if r["refinement_triggered"] and r["refinement_accepted"]]
+        deltas = [r["delta_iou_gt"] for r in refined_items]
+        mean_delta = float(np.mean(deltas)) if deltas else 0.0
+        median_delta = float(np.median(deltas)) if deltas else 0.0
+
+        print("\n" + "=" * 80)
+        print("DEV CALIBRATION METRICS (34 SAMPLES: 17 rare_dev + 17 nominal_val)")
+        print("=" * 80)
+        print(f"Agent Rare Recall:              {rare_recall*100:.1f}% ({tp}/{len(rare_items)})")
+        print(f"Agent Nominal False-Flag Rate:  {nom_fp_rate*100:.1f}% ({fp}/{len(nom_items)})")
+        print(f"Agent Precision / F1:           P={precision*100:.1f}%, F1={f1:.3f}")
+        print(f"Refinement Triggered & Accepted: {len(refined_items)} samples")
+        print(f"Mean Delta IoU_GT (Refined):    {mean_delta:+.4f}")
+        print(f"Median Delta IoU_GT (Refined):  {median_delta:+.4f}")
+        print("-" * 80)
+        print(f"Baseline 1 (U-Net Max Conf):  Rare Recall={b1_rec*100:.1f}%, Nom FP={b1_fpr*100:.1f}%, F1={b1_f1:.3f}")
+        print(f"Baseline 2 (Discordance):     Rare Recall={b2_rec*100:.1f}%, Nom FP={b2_fpr*100:.1f}%, F1={b2_f1:.3f}")
+        print(f"Baseline 3 (k-NN / Logistic): Rare Recall={b3_rec*100:.1f}%, Nom FP={b3_fpr*100:.1f}%, F1={b3_f1:.3f}")
+        print("=" * 80)
+
+        summary["calibration_metrics"] = {
+            "rare_recall": rare_recall,
+            "nominal_false_flag_rate": nom_fp_rate,
+            "precision": precision,
+            "f1": f1,
+            "mean_delta_iou_gt_refined": mean_delta,
+            "median_delta_iou_gt_refined": median_delta,
+            "baselines": {
+                "b1": {"recall": b1_rec, "fp_rate": b1_fpr, "f1": b1_f1},
+                "b2": {"recall": b2_rec, "fp_rate": b2_fpr, "f1": b2_f1},
+                "b3": {"recall": b3_rec, "fp_rate": b3_fpr, "f1": b3_f1},
+            },
+        }
     if output_path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
@@ -193,7 +276,7 @@ def run_evaluation(
 
 def main():
     parser = argparse.ArgumentParser(description="WaferGuard Triage Agent Evaluation Runner.")
-    parser.add_argument("--mode", type=str, default="dev-dry-run", choices=["sharpened-10", "official-10", "dev-dry-run", "full"])
+    parser.add_argument("--mode", type=str, default="dev-dry-run", choices=["sharpened-10", "official-10", "dev-dry-run", "dev-calibration", "full"])
     parser.add_argument("--output", type=str, default=None)
     parser.add_argument(
         "--triage-model", "--model",

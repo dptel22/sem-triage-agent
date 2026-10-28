@@ -89,12 +89,14 @@ class MorphologyFeatures:
     crop_std_intensity: float
     contrast: float
     hist_8: List[float]
+    n_components: int = 1
+    initial_discordance: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
     def to_vector(self) -> np.ndarray:
-        """Flattens scalar descriptors into a 1D feature vector for retrieval."""
+        """Flattens scalar descriptors into a 1D feature vector (18 dims) for retrieval."""
         scalars = [
             self.log_area,
             self.aspect_ratio,
@@ -104,6 +106,8 @@ class MorphologyFeatures:
             self.crop_mean_intensity,
             self.crop_std_intensity,
             self.contrast,
+            float(math.log(1.0 + max(1, self.n_components))),
+            float(max(0.0, min(1.0, self.initial_discordance))),
         ]
         return np.array(scalars + self.hist_8, dtype=np.float32)
 
@@ -116,6 +120,8 @@ def compute_defect_morphology(
     image: Image.Image | np.ndarray,
     mask: np.ndarray,
     box: Tuple[int, int, int, int] | List[int],
+    n_components: int = 1,
+    initial_discordance: float = 0.0,
 ) -> MorphologyFeatures:
     """Computes quantitative morphology descriptors from an SEM image and defect mask."""
     if isinstance(image, Image.Image):
@@ -179,6 +185,8 @@ def compute_defect_morphology(
         crop_std_intensity=std_int,
         contrast=contrast,
         hist_8=hist_norm,
+        n_components=n_components,
+        initial_discordance=initial_discordance,
     )
 
 
@@ -253,16 +261,69 @@ class RetrievalBank:
         cls,
         data_dir: Path | str = "data/carinthia_s",
         manifest_path: Path | str = "results/gate1/splits_manifest.json",
-        cache_path: Path | str = "outputs/gate2/retrieval_bank.json",
+        cache_path: Path | str = "outputs/gate3/retrieval_bank.json",
     ) -> "RetrievalBank":
         cache_p = Path(cache_path)
         if cache_p.exists():
             data = json.loads(cache_p.read_text(encoding="utf-8"))
-            samples = data["samples"]
-            vectors = np.array(data["vectors"], dtype=np.float32)
-            mean = np.array(data["mean"], dtype=np.float32)
-            std = np.array(data["std"], dtype=np.float32)
-            return cls(samples=samples, vectors=vectors, mean=mean, std=std)
+            if len(data.get("mean", [])) == 18:
+                samples = data["samples"]
+                vectors = np.array(data["vectors"], dtype=np.float32)
+                mean = np.array(data["mean"], dtype=np.float32)
+                std = np.array(data["std"], dtype=np.float32)
+                return cls(samples=samples, vectors=vectors, mean=mean, std=std)
+
+        # Check legacy gate2 bank and upgrade if available
+        legacy_cache = Path("outputs/gate2/retrieval_bank.json")
+        unet_boxes_p = Path("results/gate1/unet_predicted_boxes.json")
+        all_entries = {}
+        if unet_boxes_p.exists():
+            for _, items in json.load(open(unet_boxes_p, encoding="utf-8")).items():
+                if isinstance(items, list):
+                    for it in items:
+                        all_entries[it["id"]] = it
+
+        if legacy_cache.exists():
+            legacy_data = json.loads(legacy_cache.read_text(encoding="utf-8"))
+            samples = legacy_data["samples"]
+            raw_vectors = []
+            for s in samples:
+                sid = s["id"]
+                m = s["morphology"]
+                ue = all_entries.get(sid, {})
+                n_c = len(ue.get("component_boxes", [])) or 1
+                scalars = [
+                    m["log_area"],
+                    m["aspect_ratio"],
+                    m["box_fill_ratio"],
+                    m["norm_centroid_x"],
+                    m["norm_centroid_y"],
+                    m["crop_mean_intensity"],
+                    m["crop_std_intensity"],
+                    m["contrast"],
+                    float(math.log(1.0 + n_c)),
+                    0.0,
+                ]
+                s["morphology"]["n_components"] = n_c
+                s["morphology"]["initial_discordance"] = 0.0
+                vec = scalars + m["hist_8"]
+                raw_vectors.append(vec)
+
+            raw_mat = np.array(raw_vectors, dtype=np.float32)
+            mean = np.mean(raw_mat, axis=0)
+            std = np.std(raw_mat, axis=0)
+            std[std == 0] = 1.0
+            std_mat = (raw_mat - mean) / std
+
+            cache_p.parent.mkdir(parents=True, exist_ok=True)
+            cache_data = {
+                "samples": samples,
+                "vectors": std_mat.tolist(),
+                "mean": mean.tolist(),
+                "std": std.tolist(),
+            }
+            cache_p.write_text(json.dumps(cache_data, indent=2), encoding="utf-8")
+            return cls(samples=samples, vectors=std_mat, mean=mean, std=std)
 
         data_p = Path(data_dir)
         man_p = Path(manifest_path)
@@ -538,7 +599,7 @@ class VerifiableTriageAgent:
         img_pil = Image.open(img_p).convert("L")
 
         # Step 1: Empty-Scan Gate (Condition C3)
-        c3_result = evaluate_empty_scan_gate(unet_pred_entry, threshold_pixels=64)
+        c3_result = evaluate_empty_scan_gate(unet_pred_entry, threshold_pixels=16)
         if c3_result.is_empty:
             b1 = self.b1_evaluator.evaluate(unet_pred_entry, is_empty_scan=True)
             b2 = self.b2_evaluator.evaluate(0.0, is_empty_scan=True)
@@ -776,8 +837,17 @@ class VerifiableTriageAgent:
                         delta_iou_proxy = refined_iou - init_iou
                         refinement_accepted = True
 
+        # Update final_box to tight enclosing box of m_sam_final to prevent morphology distortion
+        y_idx, x_idx = np.where(m_sam_final > 0)
+        if len(y_idx) > 0:
+            final_box = [int(x_idx.min()), int(y_idx.min()), int(x_idx.max()), int(y_idx.max())]
+
         # Step 3: Morphology Extraction & Top-5 Exemplar Retrieval
-        morph = compute_defect_morphology(img_pil, m_sam_final, final_box)
+        n_comps = len(unet_pred_entry.get("component_boxes", [])) or 1
+        init_disc = max(0.0, 1.0 - init_iou)
+        morph = compute_defect_morphology(
+            img_pil, m_sam_final, final_box, n_components=n_comps, initial_discordance=init_disc
+        )
         query_vec = morph.to_vector()
         top5_neighbors = self.retrieval_bank.retrieve_top_k(query_vec, k=5, exclude_id=sid)
         std_feat = self.retrieval_bank.standardize(query_vec)
@@ -810,13 +880,19 @@ class VerifiableTriageAgent:
         }]
 
         knn_summary = ", ".join([f"{n.class_name} (d={n.distance:.2f})" for n in top5_neighbors])
+        p_rare_knn = getattr(b3, "details", {}).get("p_knn_rare", getattr(b3, "score", 0.0))
+        p_rare_combined = getattr(b3, "score", 0.0)
+
         user_prompt = (
             f"SEM Defect Triage Analysis for image {sid}:\n"
             f"- U-Net Confidence: {unet_pred_entry.get('max_prob', 0.0):.4f}\n"
             f"- Observable Mask Agreement IoU: {final_iou:.4f}\n"
+            f"- Connected Components: {n_comps}\n"
             f"- Morphology: area={morph.area}px, aspect_ratio={morph.aspect_ratio:.2f}, fill={morph.box_fill_ratio:.2f}\n"
             f"- Top-5 Retrieved Exemplars: {knn_summary}\n"
+            f"- Baseline 3 Non-LLM Assessment: {b3.decision} (P(rare) = {p_rare_combined:.3f}, k-NN rare fraction = {p_rare_knn:.2f})\n"
             f"- Baseline Recommendations: B1={b1.decision}, B2={b2.decision}, B3={b3.decision}\n"
+            "Evaluate whether this defect is standard nominal (ACCEPT_NOMINAL) or out-of-distribution / discordant rare (DEFER_RARE_REVIEW).\n"
             "Call commit_triage_decision now."
         )
 
