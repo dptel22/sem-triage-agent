@@ -17,10 +17,10 @@
 | **`meta-sam-parser`** | Meta Models ([github.com/meta-models/meta-sam](https://github.com/meta-models/meta-sam)) | MIT License | Official reference decoder for SAM 3 base85/arithmetic wire format | **No (Third-Party Library)** |
 | **PyTorch & Torchvision** | Linux Foundation / Meta | BSD-3-Clause | Deep learning framework for local U-Net baseline training | **No (Standard Framework)** |
 | **OpenCV (`opencv-python-headless`)** | OpenCV Team | Apache-2.0 | Connected-component analysis and morphological filtering | **No (Standard Library)** |
-| **SAM Decoder Wrapper (`src/api/sam_decoder.py`)** | Authored for this project | Apache-2.0 / MIT | Bit-exact prompt construction, half-open coordinate mapping, and mask canvas assembly | **YES (Authored in Gate 0)** |
-| **Dataset Loader & Border Cleaner (`src/dataset/carinthia_loader.py`)** | Authored for this project | Apache-2.0 / MIT | Preprocessing, 3px right-border zeroing, and inclusive/half-open bbox generation | **YES (Authored in Gate 1)** |
-| **Leakage-Free Dataset Splitter (`scripts/create_gate1_splits.py`)** | Authored for this project | Apache-2.0 / MIT | Deterministic 7-way stratified split generator with LOO indexing and Gate 0 isolation | **YES (Authored in Gate 1)** |
-| **U-Net Proposer Pipeline (`scripts/train_unet_baseline.py`)** | Authored for this project | Apache-2.0 / MIT | ResNet18 U-Net training, mixed precision, and connected-component non-oracle bbox export | **YES (Authored in Gate 1)** |
+| **SAM Decoder Wrapper (`src/sam.py`)** | Authored for this project | Apache-2.0 / MIT | Bit-exact prompt construction, half-open coordinate mapping, and mask canvas assembly | **YES (Authored in Gate 0)** |
+| **Dataset Loader & Border Cleaner (`src/dataset.py`)** | Authored for this project | Apache-2.0 / MIT | Preprocessing, 3px right-border zeroing, and inclusive/half-open bbox generation | **YES (Authored in Gate 1)** |
+| **Leakage-Free Dataset Splitter (`results/gate1/splits_manifest.json`)** | Authored for this project | Apache-2.0 / MIT | Deterministic 7-way stratified split generator with LOO indexing and Gate 0 isolation | **YES (Authored in Gate 1)** |
+| **U-Net Proposer Pipeline (`src/unet.py, scripts/train_unet.py`)** | Authored for this project | Apache-2.0 / MIT | ResNet18 U-Net training, mixed precision, and connected-component non-oracle bbox export | **YES (Authored in Gate 1)** |
 | **Sharpened Test Harness & Manifest (`docs/sharpened_test_protocol.md`)** | Authored for this project | Apache-2.0 / MIT | Pre-registered objective evaluation harness with frozen seed 42 sample IDs | **YES (Authored in Gate 1)** |
 
 ---

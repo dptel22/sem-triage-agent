@@ -77,7 +77,7 @@ python -m venv .venv && source .venv/bin/activate  # Windows: .venv\Scripts\acti
 pip install -r requirements.txt
 pytest -v
 python scripts/make_results_table.py --print
-python scripts/select_sharpened_test_samples.py
+python scripts/train_unet.py --evaluate
 ```
 
 ## Documentation & Compliance Links
