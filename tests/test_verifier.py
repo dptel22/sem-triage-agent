@@ -73,3 +73,22 @@ def test_leak_detection_triggers_refinement():
     verif = verify_sam_mask(m_unet, m_sam, box)
     assert verif.area_ratio == 2.0
     assert verif.triggered_refinement is True
+
+
+def test_hard_monotonicity_lock():
+    """Verifies that unet_sam_iou >= 0.68 with 0.50 <= area_ratio <= 2.0 locks mask unconditionally."""
+    m_unet = np.zeros((100, 100), dtype=np.uint8)
+    m_sam = np.zeros((100, 100), dtype=np.uint8)
+    # 70 pixels overlap, 30 unet-only -> inter=70, union=100 -> IoU = 0.70
+    m_unet[10:20, 10:20] = 1  # 100 px
+    m_sam[10:20, 10:17] = 1   # 70 px
+    # Box area = 50 * 50 = 2500 -> box_fill = 70 / 2500 = 0.028 (< 0.10, which would normally trigger fill ratio alert)
+    box = [0, 0, 49, 49]
+
+    verif = verify_sam_mask(m_unet, m_sam, box)
+    assert verif.unet_sam_iou == 0.70
+    assert 0.50 <= verif.area_ratio <= 2.0
+    # Must be locked unconditionally due to Hard Monotonicity Lock
+    assert verif.is_locked is True
+    assert verif.triggered_refinement is False
+    assert len(verif.trigger_reasons) == 0

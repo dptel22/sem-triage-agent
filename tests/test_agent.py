@@ -1,5 +1,7 @@
 """Unit tests for Verifiable Triage Agent with mocked API (no key required)."""
 
+import base64
+import io
 from unittest.mock import MagicMock
 import numpy as np
 from PIL import Image
@@ -11,6 +13,7 @@ from src.agent.triage_agent import (
     RetrievalBank,
     RetrievedNeighbor,
     VerifiableTriageAgent,
+    build_3panel_visual_strip,
     compute_defect_morphology,
     extract_interior_points,
     resolve_api_key,
@@ -147,13 +150,13 @@ def test_agent_triage_with_mocked_api(tmp_path):
         unet_pred_entry=unet_entry,
         data_dir=tmp_path,
     )
-
     assert res.image_id == "synthetic_01"
     assert res.decision == "ACCEPT_NOMINAL"
     assert res.confidence == 0.95
     assert res.is_empty_scan is False
     assert res.sam_response_id == "mock_sam_resp_123"
     assert res.triage_response_id == "mock_chat_456"
+
 
 def test_open_weights_provider_routing(monkeypatch):
     """Verifies API key resolution routes correctly for open-weights providers (Baseten/Modal)."""
@@ -168,3 +171,105 @@ def test_open_weights_provider_routing(monkeypatch):
     monkeypatch.delenv("BASETEN_API_KEY", raising=False)
     monkeypatch.setenv("META_API_KEY", "test_meta_key")
     assert resolve_api_key(provider="meta") == "test_meta_key"
+
+
+def test_build_3panel_visual_strip():
+    """Verifies in-memory 3-panel visual inspection strip (480 x 1440 RGB PNG)."""
+    raw_img = Image.new("L", (480, 480), color=100)
+    final_box = [100, 150, 200, 250]
+    m_unet = np.zeros((480, 480), dtype=np.uint8)
+    m_unet[120:180, 120:180] = 1
+    m_sam = np.zeros((480, 480), dtype=np.uint8)
+    m_sam[140:200, 140:200] = 1
+    nom_img = Image.new("L", (480, 480), color=180)
+
+    data_url = build_3panel_visual_strip(raw_img, final_box, m_unet, m_sam, nom_img)
+    assert data_url.startswith("data:image/png;base64,")
+
+    # Decode and verify dimensions
+    b64_data = data_url.split(",", 1)[1]
+    decoded_bytes = base64.b64decode(b64_data)
+    strip_img = Image.open(io.BytesIO(decoded_bytes))
+    assert strip_img.size == (1440, 480)
+    assert strip_img.mode == "RGB"
+
+    # Panel 1 (left) must have yellow bounding box pixel
+    strip_arr = np.array(strip_img)
+    # top-left of box is (100, 150)
+    yellow = [255, 255, 0]
+    assert np.allclose(strip_arr[150, 100], yellow, atol=10)
+
+    # Panel 2 (center, x offset 480):
+    # intersection at [140:180, 140:180] -> x in [620, 660] -> green
+    green = [0, 255, 0]
+    assert np.allclose(strip_arr[150, 480 + 150], green, atol=10)
+    # SAM only at [190, 190] -> red
+    red = [255, 0, 0]
+    assert np.allclose(strip_arr[190, 480 + 190], red, atol=10)
+    # UNet only at [130, 130] -> blue
+    blue = [0, 100, 255]
+    assert np.allclose(strip_arr[130, 480 + 130], blue, atol=10)
+
+
+def test_triage_removes_baseline3_from_prompt(tmp_path):
+    """Verifies that Baseline 3 predictions are excluded from LLM prompt and 3-panel strip is passed."""
+    img_p = tmp_path / "test_sem.jpg"
+    Image.new("L", (480, 480), color=128).save(img_p)
+
+    mock_client = MagicMock()
+    mock_sam_resp = MagicMock()
+    mock_sam_resp.id = "mock_sam_1"
+    mock_sam_resp.output_text = "<0f>1<|box;x1=100;y1=100;x2=140;y2=140;w=480;h=480|><|mask;x=100;y=100;data=5,5,!!!!!(QO(0lu8?|>"
+    mock_client.responses.create.return_value = mock_sam_resp
+
+    captured_messages = []
+
+    def mock_chat_create(*args, **kwargs):
+        captured_messages.extend(kwargs.get("messages", []))
+        resp = MagicMock()
+        resp.id = "mock_resp_1"
+        choice = MagicMock()
+        tc = MagicMock()
+        tc.function.arguments = '{"decision": "DEFER_RARE_REVIEW", "confidence": 0.90, "rationale": "Signal 3", "cited_evidence": ["Signal 3"]}'
+        choice.message.tool_calls = [tc]
+        resp.choices = [choice]
+        return resp
+
+    mock_client.chat.completions.create.side_effect = mock_chat_create
+
+    bank = RetrievalBank(
+        samples=[],
+        vectors=np.zeros((0, 18), dtype=np.float32),
+        mean=np.zeros(18, dtype=np.float32),
+        std=np.ones(18, dtype=np.float32),
+    )
+    agent = VerifiableTriageAgent(
+        retrieval_bank=bank,
+        unet_model_path=tmp_path / "non_existent.pt",
+        client=mock_client,
+    )
+
+    unet_entry = {
+        "id": "test_b3_exclusion",
+        "largest_component_bbox": [100, 100, 140, 140],
+        "predicted_foreground_pixels_filtered": 200,
+        "predicted_foreground_pixels_raw": 200,
+        "max_prob": 0.85,
+    }
+
+    agent.triage_image(image_path=img_p, unet_pred_entry=unet_entry, data_dir=tmp_path)
+
+    # Check user prompt
+    user_msg = next(m for m in captured_messages if m["role"] == "user")
+    content = user_msg["content"]
+    text_content = next(c["text"] for c in content if c["type"] == "text")
+    image_content = next(c["image_url"]["url"] for c in content if c["type"] == "image_url")
+
+    # Baseline 3 decision or probability MUST NOT be present
+    assert "Baseline 3 Non-LLM Assessment" not in text_content
+    assert "P(rare)" not in text_content
+    assert "Baseline Recommendations" not in text_content
+    assert "k-NN rare fraction" not in text_content
+
+    # Image must be the 3-panel strip (PNG data URL)
+    assert image_content.startswith("data:image/png;base64,")

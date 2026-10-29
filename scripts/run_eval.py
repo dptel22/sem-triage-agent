@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -50,6 +51,8 @@ def run_evaluation(
 ) -> Dict[str, Any]:
     data_p = Path(data_dir)
     is_open_weights = "open" in triage_model.lower() or "baseten" in str(api_base_url or "").lower()
+    default_base_url = os.environ.get("BASETEN_BASE_URL", "https://inference.baseten.co/v1") if is_open_weights else "https://api.meta.ai/v1"
+    base_url = api_base_url or default_base_url
 
     try:
         api_key = resolve_api_key(provider="baseten" if is_open_weights else "meta")
@@ -73,7 +76,7 @@ def run_evaluation(
         retrieval_bank=bank,
         unet_model_path=PROJECT_ROOT / "outputs" / "gate1" / "checkpoints" / "best_unet.pt",
         triage_model=triage_model,
-        api_base_url=api_base_url or "https://api.meta.ai/v1",
+        api_base_url=base_url,
         api_key=api_key,
     )
 

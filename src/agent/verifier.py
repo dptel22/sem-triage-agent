@@ -113,6 +113,20 @@ def verify_sam_mask(
     box_fill = prompt_box_fill_ratio
     area_ratio = float(sam_area / max(1, unet_area))
 
+    # Hard Monotonicity Lock: If initial agreement is >= 0.68 with balanced area (0.50 <= area_ratio <= 2.0),
+    # lock the initial mask immediately and prevent any downstream refinement.
+    if unet_sam_iou >= 0.68 and 0.50 <= area_ratio <= 2.0:
+        return MaskVerificationResult(
+            unet_sam_iou=unet_sam_iou,
+            box_fill_ratio=box_fill,
+            prompt_box_fill_ratio=prompt_box_fill_ratio,
+            sam_bbox_fill_ratio=sam_bbox_fill_ratio,
+            area_ratio=area_ratio,
+            triggered_refinement=False,
+            trigger_reasons=[],
+            is_locked=True,
+        )
+
     triggers: List[str] = []
     if unet_sam_iou < min_unet_sam_iou:
         triggers.append(f"U-Net/SAM mask agreement {unet_sam_iou:.4f} < {min_unet_sam_iou}")

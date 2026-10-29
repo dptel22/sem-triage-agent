@@ -1,14 +1,15 @@
-"""Verifiable Multimodal Triage Agent for SEM Defect Metrology (Gate 2).
+"""Verifiable Multimodal Triage Agent for SEM Defect Metrology (Gate 2 & Gate 3).
 
 Integrates U-Net defect proposal, SAM 3.1 interactive segmentation with
 deterministic mask verification (Condition C1), empty-scan routing (Condition C3),
 unbiased Top-5 exemplar retrieval, 3 benchmark baselines, and multimodal LLM
-decision commitment via function calling.
+decision commitment via function calling over a 3-panel visual inspection strip.
 """
 
 from __future__ import annotations
 
 import base64
+import io
 import json
 import math
 import os
@@ -18,7 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import openai
-from PIL import Image
+from PIL import Image, ImageDraw
 
 try:
     import torch
@@ -43,32 +44,93 @@ NOMINAL_CLASSES = {3, 4}
 
 def resolve_api_key(provider: str = "meta") -> str:
     """Safely retrieves API key for Meta or open-weights providers (Baseten/Modal) without exposing secrets."""
-    if provider.lower() in ("baseten", "modal", "open"):
-        for env_var in ["BASETEN_API_KEY", "MODAL_API_KEY", "OPEN_WEIGHTS_API_KEY", "META_API_KEY"]:
-            val = os.environ.get(env_var)
-            if val:
-                return val.strip().strip("'").strip('"')
+    is_open = provider.lower() in ("baseten", "modal", "open")
+    target_vars = ["BASETEN_API_KEY", "MODAL_API_KEY", "OPEN_WEIGHTS_API_KEY"] if is_open else ["META_API_KEY"]
 
-    key = os.environ.get("META_API_KEY")
-    if key:
-        return key.strip().strip("'").strip('"')
+    # 1. Check os.environ first
+    for env_var in target_vars:
+        val = os.environ.get(env_var)
+        if val:
+            return val.strip().strip("'").strip('"')
 
+    # 2. Check local .env file if present
     env_path = Path(".env")
     if env_path.exists():
         for line in env_path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
-            if provider.lower() in ("baseten", "modal", "open"):
-                for var_name in ["BASETEN_API_KEY", "MODAL_API_KEY", "OPEN_WEIGHTS_API_KEY"]:
-                    if line.startswith(f"{var_name}=") and not line.startswith("#"):
-                        val = line.split("=", 1)[1].strip().strip("'").strip('"')
-                        if val:
-                            return val
-            if line.startswith("META_API_KEY=") and not line.startswith("#"):
-                val = line.split("=", 1)[1].strip()
-                val = val.strip("'").strip('"')
-                if val:
-                    return val
+            for var_name in target_vars:
+                if line.startswith(f"{var_name}=") and not line.startswith("#"):
+                    val = line.split("=", 1)[1].strip().strip("'").strip('"')
+                    if val:
+                        return val
+
+    # 3. Fallback for open weights to META_API_KEY only if explicitly configured
+    if is_open:
+        val = os.environ.get("META_API_KEY")
+        if val:
+            return val.strip().strip("'").strip('"')
+
     raise ValueError(f"No API key found in environment for provider '{provider}'.")
+
+
+def build_3panel_visual_strip(
+    raw_image: Image.Image | np.ndarray,
+    final_box: Tuple[int, int, int, int] | List[int],
+    unet_mask: np.ndarray,
+    sam_mask: np.ndarray,
+    nominal_neighbor_image: Optional[Image.Image | np.ndarray] = None,
+) -> str:
+    """Builds an in-memory 480 x 1440 RGB visual inspection strip (base64 PNG data URL).
+
+    Panel 1 (Left, 480x480): Raw SEM image with final bounding box drawn in yellow.
+    Panel 2 (Center, 480x480): Mask Agreement RGB Overlay:
+      - Green ([0, 255, 0]): U-Net & SAM agree
+      - Red ([255, 0, 0]): SAM-only leak (m_sam=1, m_unet=0)
+      - Blue ([0, 100, 255]): U-Net-only miss (m_unet=1, m_sam=0)
+      - Background: SEM grayscale pixels
+    Panel 3 (Right, 480x480): Raw SEM image of #1 nearest Nominal neighbor from retrieval bank.
+    """
+    if isinstance(raw_image, Image.Image):
+        raw_pil = raw_image.convert("L").resize((480, 480))
+    else:
+        raw_pil = Image.fromarray(np.uint8(raw_image)).convert("L").resize((480, 480))
+    raw_arr = np.array(raw_pil, dtype=np.uint8)
+
+    # Panel 1: Raw image + yellow bbox
+    panel1 = raw_pil.convert("RGB")
+    draw = ImageDraw.Draw(panel1)
+    bx1, by1, bx2, by2 = [int(v) for v in final_box]
+    bx1, bx2 = max(0, min(479, bx1)), max(0, min(479, bx2))
+    by1, by2 = max(0, min(479, by1)), max(0, min(479, by2))
+    draw.rectangle([bx1, by1, bx2, by2], outline=(255, 255, 0), width=2)
+
+    # Panel 2: Mask agreement RGB overlay
+    m_u = (unet_mask > 0).astype(bool)
+    m_s = (sam_mask > 0).astype(bool)
+    panel2_arr = np.stack([raw_arr, raw_arr, raw_arr], axis=-1)
+    panel2_arr[m_u & m_s] = [0, 255, 0]        # Green agreement
+    panel2_arr[(~m_u) & m_s] = [255, 0, 0]     # Red SAM leak
+    panel2_arr[m_u & (~m_s)] = [0, 100, 255]   # Blue U-Net miss
+    panel2 = Image.fromarray(panel2_arr, mode="RGB")
+
+    # Panel 3: Nominal neighbor
+    if nominal_neighbor_image is not None:
+        if isinstance(nominal_neighbor_image, Image.Image):
+            panel3 = nominal_neighbor_image.convert("RGB").resize((480, 480))
+        else:
+            panel3 = Image.fromarray(np.uint8(nominal_neighbor_image)).convert("RGB").resize((480, 480))
+    else:
+        panel3 = Image.new("RGB", (480, 480), color=(128, 128, 128))
+
+    strip = Image.new("RGB", (1440, 480))
+    strip.paste(panel1, (0, 0))
+    strip.paste(panel2, (480, 0))
+    strip.paste(panel3, (960, 0))
+
+    buf = io.BytesIO()
+    strip.save(buf, format="PNG")
+    b64_str = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{b64_str}"
 
 
 # ---------------------------------------------------------------------------
@@ -549,15 +611,23 @@ class VerifiableTriageAgent:
         retrieval_bank: RetrievalBank,
         unet_model_path: str | Path = "outputs/gate1/checkpoints/best_unet.pt",
         triage_model: str = "muse-spark-1.3",
-        api_base_url: str = "https://api.meta.ai/v1",
+        api_base_url: Optional[str] = None,
         api_key: Optional[str] = None,
         device: Optional[str] = None,
         client: Optional[Any] = None,
     ):
         self.retrieval_bank = retrieval_bank
         self.triage_model = triage_model
-        self.api_base_url = api_base_url
         is_open_weights = "open" in triage_model.lower() or "baseten" in str(api_base_url or "").lower()
+
+        if api_base_url is None:
+            if is_open_weights:
+                self.api_base_url = os.environ.get("BASETEN_BASE_URL", "https://inference.baseten.co/v1")
+            else:
+                self.api_base_url = "https://api.meta.ai/v1"
+        else:
+            self.api_base_url = api_base_url
+
         if api_key is None and client is None:
             try:
                 self.api_key = resolve_api_key(provider="baseten" if is_open_weights else "meta")
@@ -565,7 +635,23 @@ class VerifiableTriageAgent:
                 self.api_key = "mocked_key"
         else:
             self.api_key = api_key or "mocked_key"
-        self.client = client or openai.OpenAI(api_key=self.api_key, base_url=self.api_base_url, timeout=120.0)
+
+        if client is not None:
+            self.sam_client = client
+            self.triage_client = client
+            self.client = client
+        else:
+            # SAM client routes to Meta API (sam-3.1)
+            try:
+                sam_key = resolve_api_key(provider="meta")
+            except ValueError:
+                sam_key = self.api_key
+            sam_base_url = os.environ.get("META_BASE_URL", "https://api.meta.ai/v1")
+            self.sam_client = openai.OpenAI(api_key=sam_key, base_url=sam_base_url, timeout=120.0)
+
+            # Triage client routes to specified provider (Meta API or Baseten open-weights)
+            self.triage_client = openai.OpenAI(api_key=self.api_key, base_url=self.api_base_url, timeout=120.0)
+            self.client = self.triage_client
 
         self.b1_evaluator = Baseline1Confidence(confidence_cutoff=0.90)
         self.b2_evaluator = Baseline2Discordance(discordance_cutoff=0.35)
@@ -595,7 +681,7 @@ class VerifiableTriageAgent:
     ) -> TriageAgentResult:
         img_p = Path(image_path)
         data_p = Path(data_dir)
-        sid = unet_pred_entry["id"]
+        sid = unet_pred_entry.get("id", "unknown_scan")
         img_pil = Image.open(img_p).convert("L")
 
         # Step 1: Empty-Scan Gate (Condition C3)
@@ -610,7 +696,7 @@ class VerifiableTriageAgent:
                 confidence=1.0,
                 rationale=f"Empty-scan gate triggered: {c3_result.reason}.",
                 cited_evidence=[
-                    f"Filtered foreground pixels: {c3_result.filtered_fg_pixels} < 64 threshold",
+                    f"Filtered foreground pixels: {c3_result.filtered_fg_pixels} < 16 threshold",
                     "No valid connected component survived area >= 16px filter",
                 ],
                 is_empty_scan=True,
@@ -658,7 +744,7 @@ class VerifiableTriageAgent:
             active_box[0], active_box[1], active_box[2], active_box[3],
             480, 480, convention="inclusive", object_id=1,
         )
-        sam_resp = self.client.responses.create(
+        sam_resp = self.sam_client.responses.create(
             model="sam-3.1",
             input=[{
                 "role": "user",
@@ -685,7 +771,15 @@ class VerifiableTriageAgent:
         refinement_accepted = False
         refinement_strategy = "none"
 
-        if verif.triggered_refinement:
+        # Hard Monotonicity Lock: If initial agreement is >= 0.68 with balanced area ratio [0.50, 2.0],
+        # lock the initial mask immediately (Strategy = "none", Delta IoU = 0.0000).
+        # NEVER run multi_component_sub_box_union or composite_box_and_point when agreement >= 0.68.
+        if init_iou >= 0.68 and (0.50 <= verif.area_ratio <= 2.0):
+            can_refine = False
+        else:
+            can_refine = verif.triggered_refinement and not verif.is_locked
+
+        if can_refine:
             unet_box = unet_pred_entry.get("largest_component_bbox") or active_box
             ux1 = max(0, min(476, int(unet_box[0])))
             uy1 = max(0, min(479, int(unet_box[1])))
@@ -693,9 +787,20 @@ class VerifiableTriageAgent:
             uy2 = max(0, min(479, int(unet_box[3])))
             core_box = [ux1, uy1, ux2, uy2]
 
-            sig_components = [c for c in unet_pred_entry.get("component_boxes", []) if c.get("area", 0) >= 64]
+            comp_boxes = unet_pred_entry.get("component_boxes", [])
+            sig_components = [c for c in comp_boxes if c.get("area", 0) >= 80]
+            comp_areas = [c.get("area", 0) for c in comp_boxes]
+            total_comp_area = sum(comp_areas)
+            primary_mass_ratio = (max(comp_areas) / max(1, total_comp_area)) if comp_areas else 1.0
+
             r_leak = np.logical_and(m_sam_init == 1, prob_unet < 0.15).astype(np.uint8)
             leak_area = int(r_leak.sum())
+
+            core_bw = core_box[2] - core_box[0] + 1
+            core_bh = core_box[3] - core_box[1] + 1
+            box_span = max(core_bw, core_bh)
+            aspect_ratio = float(core_bw / max(1, core_bh))
+            is_elongated = (box_span > 200) and (aspect_ratio > 3.5 or aspect_ratio < (1.0 / 3.5) or verif.box_fill_ratio < 0.30)
 
             # Priority 1: Shift recovery
             if active_box != core_box:
@@ -711,7 +816,7 @@ class VerifiableTriageAgent:
                     )],
                 )
                 refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
-                sam_resp_ref = self.client.responses.create(
+                sam_resp_ref = self.sam_client.responses.create(
                     model="sam-3.1",
                     input=[{"role": "user", "content": [{"type": "input_text", "text": refined_prompt}, {"type": "input_image", "image_url": full_data_url}]}],
                 )
@@ -729,7 +834,9 @@ class VerifiableTriageAgent:
                         refinement_accepted = True
 
             # Priority 2: Multi-component defect union
-            elif len(sig_components) >= 2:
+            # Trigger ONLY when initial agreement < 0.60, at least 2 components >= 80px, and primary mass ratio < 0.80
+            # (Prevents nominal masks with a small noisy speck, e.g. 0402ae26 with ratio 0.838, from degrading)
+            elif (init_iou < 0.60 and len(sig_components) >= 2 and primary_mass_ratio < 0.80):
                 refinement_strategy = "multi_component_sub_box_union"
                 top_k_boxes = [c["bbox"] for c in sig_components[:3]]
                 objs = [
@@ -748,7 +855,7 @@ class VerifiableTriageAgent:
                     for i, b in enumerate(top_k_boxes)
                 ]
                 refined_prompt = msp.build_object_prompt(size=(480, 480), objects=objs)
-                sam_resp_ref = self.client.responses.create(
+                sam_resp_ref = self.sam_client.responses.create(
                     model="sam-3.1",
                     input=[{"role": "user", "content": [{"type": "input_text", "text": refined_prompt}, {"type": "input_image", "image_url": full_data_url}]}],
                 )
@@ -790,7 +897,7 @@ class VerifiableTriageAgent:
                     )],
                 )
                 refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
-                sam_resp_ref = self.client.responses.create(
+                sam_resp_ref = self.sam_client.responses.create(
                     model="sam-3.1",
                     input=[{"role": "user", "content": [{"type": "input_text", "text": refined_prompt}, {"type": "input_image", "image_url": full_data_url}]}],
                 )
@@ -806,8 +913,13 @@ class VerifiableTriageAgent:
                         delta_iou_proxy = refined_iou - init_iou
                         refinement_accepted = True
 
-            # Priority 4: Fallback
-            else:
+            # Priority 4: Fallback (composite box and point)
+            # NEVER run on agreement >= 0.68, elongated scratches/stripes, or well-formed masks
+            elif (
+                init_iou < 0.68
+                and not is_elongated
+                and not (verif.box_fill_ratio >= 0.40 and verif.box_fill_ratio <= 0.85 and 0.50 <= verif.area_ratio <= 2.0 and leak_area == 0 and init_iou >= 0.50)
+            ):
                 refinement_strategy = "composite_box_and_point"
                 pt_x = (core_box[0] + core_box[2]) // 2
                 pt_y = (core_box[1] + core_box[3]) // 2
@@ -820,7 +932,7 @@ class VerifiableTriageAgent:
                     )],
                 )
                 refined_prompt = msp.build_object_prompt(size=(480, 480), objects=[ref_obj])
-                sam_resp_ref = self.client.responses.create(
+                sam_resp_ref = self.sam_client.responses.create(
                     model="sam-3.1",
                     input=[{"role": "user", "content": [{"type": "input_text", "text": refined_prompt}, {"type": "input_image", "image_url": full_data_url}]}],
                 )
@@ -857,7 +969,39 @@ class VerifiableTriageAgent:
         b2 = self.b2_evaluator.evaluate(final_iou, is_empty_scan=False)
         b3 = self.b3_evaluator.evaluate(top5_neighbors, std_feat, is_empty_scan=False)
 
-        # Step 5: Multimodal LLM Decision Node
+        # Find #1 nearest nominal neighbor from retrieval bank for Panel 3
+        nominal_neighbor_img = None
+        for n in top5_neighbors:
+            if n.class_label in NOMINAL_CLASSES:
+                nom_p = data_p / "images" / f"{n.id}.jpg"
+                if nom_p.exists():
+                    try:
+                        nominal_neighbor_img = Image.open(nom_p).convert("L")
+                        break
+                    except Exception:
+                        pass
+
+        if nominal_neighbor_img is None:
+            wider_neighbors = self.retrieval_bank.retrieve_top_k(query_vec, k=15, exclude_id=sid)
+            for n in wider_neighbors:
+                if n.class_label in NOMINAL_CLASSES:
+                    nom_p = data_p / "images" / f"{n.id}.jpg"
+                    if nom_p.exists():
+                        try:
+                            nominal_neighbor_img = Image.open(nom_p).convert("L")
+                            break
+                        except Exception:
+                            pass
+
+        strip_data_url = build_3panel_visual_strip(
+            raw_image=img_pil,
+            final_box=final_box,
+            unet_mask=m_unet,
+            sam_mask=m_sam_final,
+            nominal_neighbor_image=nominal_neighbor_img,
+        )
+
+        # Step 5: Multimodal LLM Decision Node over 3-Panel Inspection Strip
         tools = [{
             "type": "function",
             "function": {
@@ -880,19 +1024,26 @@ class VerifiableTriageAgent:
         }]
 
         knn_summary = ", ".join([f"{n.class_name} (d={n.distance:.2f})" for n in top5_neighbors])
-        p_rare_knn = getattr(b3, "details", {}).get("p_knn_rare", getattr(b3, "score", 0.0))
-        p_rare_combined = getattr(b3, "score", 0.0)
+        rare_support_count = sum(1 for n in top5_neighbors if n.class_label in RARE_CLASSES)
 
+        # Prompt excludes Baseline 3 predictions to enforce independent evidence evaluation
         user_prompt = (
             f"SEM Defect Triage Analysis for image {sid}:\n"
             f"- U-Net Confidence: {unet_pred_entry.get('max_prob', 0.0):.4f}\n"
             f"- Observable Mask Agreement IoU: {final_iou:.4f}\n"
             f"- Connected Components: {n_comps}\n"
             f"- Morphology: area={morph.area}px, aspect_ratio={morph.aspect_ratio:.2f}, fill={morph.box_fill_ratio:.2f}\n"
-            f"- Top-5 Retrieved Exemplars: {knn_summary}\n"
-            f"- Baseline 3 Non-LLM Assessment: {b3.decision} (P(rare) = {p_rare_combined:.3f}, k-NN rare fraction = {p_rare_knn:.2f})\n"
-            f"- Baseline Recommendations: B1={b1.decision}, B2={b2.decision}, B3={b3.decision}\n"
-            "Evaluate whether this defect is standard nominal (ACCEPT_NOMINAL) or out-of-distribution / discordant rare (DEFER_RARE_REVIEW).\n"
+            f"- Top-5 Retrieved Historical Exemplars: {knn_summary} ({rare_support_count}/5 rare)\n\n"
+            "Visual Inspection Strip Panels:\n"
+            "- Panel 1 (Left): Raw SEM image with defect bounding box in yellow.\n"
+            "- Panel 2 (Center): Mask agreement overlay (Green = U-Net & SAM agree, Red = SAM-only leak, Blue = U-Net-only miss).\n"
+            "- Panel 3 (Right): Raw SEM image of #1 nearest historical nominal defect.\n\n"
+            "Routing Decision Instructions:\n"
+            "Commit DEFER_RARE_REVIEW if ANY of the following 3 verifiable signals hold:\n"
+            "1. Rare Neighbor Support: >= 2 of Top-5 retrieved neighbors are rare classes (class_1, class_2, or class_5).\n"
+            "2. Unresolved Segmentation Breakdown: Observable mask agreement final_unet_sam_iou < 0.45 (visible in Panel 2 as dominant red/blue disagreement).\n"
+            "3. Visual / Morphological Mismatch: Severe visual mismatch between Panel 1 query and Panel 3 nominal neighbor (such as an elongated scratch/stripe spanning > 200px with aspect ratio > 3.5 or < 0.28, or low box fill < 0.30 while retrieved nominals are compact pits).\n\n"
+            "Otherwise, if the defect conforms to standard in-distribution nominal defect patterns, commit ACCEPT_NOMINAL.\n"
             "Call commit_triage_decision now."
         )
 
@@ -905,14 +1056,16 @@ class VerifiableTriageAgent:
 
         try:
             system_prompt = (
-                "You are WaferGuard, an expert semiconductor triage agent inspecting an industrial wafer SEM image. "
-                "Analyze the visual defect image, quantitative defect metrics, observable U-Net/SAM mask agreement, "
-                "morphology, and Top-5 retrieved historical exemplars to determine the routing decision: "
+                "You are WaferGuard, an expert semiconductor triage agent inspecting an industrial wafer SEM image strip. "
+                "Analyze the 3-panel visual inspection strip (Panel 1: raw image with yellow bounding box, "
+                "Panel 2: mask agreement overlay where green=agreement, red=SAM leak, blue=UNet miss, "
+                "Panel 3: #1 nearest nominal historical exemplar), quantitative defect metrics, observable agreement, "
+                "and Top-5 retrieved neighbors to determine the routing decision: "
                 "ACCEPT_NOMINAL (for standard in-distribution defects like class_3 or class_4), "
-                "DEFER_RARE_REVIEW (for out-of-distribution rare defects like class_1, class_2, class_5, or low-agreement anomalies), or "
+                "DEFER_RARE_REVIEW (for out-of-distribution rare defects like class_1, class_2, class_5, or low-agreement / mismatched anomalies), or "
                 "NO_DEFECT_REIMAGE (for empty wafer scans). Call commit_triage_decision."
             )
-            llm_resp = self.client.chat.completions.create(
+            llm_resp = self.triage_client.chat.completions.create(
                 model=self.triage_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -920,7 +1073,7 @@ class VerifiableTriageAgent:
                         "role": "user",
                         "content": [
                             {"type": "text", "text": user_prompt},
-                            {"type": "image_url", "image_url": {"url": full_data_url}},
+                            {"type": "image_url", "image_url": {"url": strip_data_url}},
                         ],
                     },
                 ],
@@ -943,6 +1096,37 @@ class VerifiableTriageAgent:
                 confidence = float(fn_args["confidence"])
                 rationale = fn_args["rationale"]
                 cited_evidence = fn_args.get("cited_evidence", [])
+            elif choice.message.content:
+                # Open-weights fallback: parse JSON if model answered in text
+                content_str = choice.message.content.strip()
+                if "```" in content_str:
+                    parts = content_str.split("```")
+                    for part in parts:
+                        p_str = part.strip()
+                        if p_str.startswith("json"):
+                            p_str = p_str[4:].strip()
+                        try:
+                            d_json = json.loads(p_str)
+                            if "decision" in d_json:
+                                content_str = json.dumps(d_json)
+                                break
+                        except Exception:
+                            pass
+                try:
+                    parsed_json = json.loads(content_str)
+                    decision = parsed_json.get("decision", decision)
+                    confidence = float(parsed_json.get("confidence", confidence))
+                    rationale = parsed_json.get("rationale", rationale)
+                    cited_evidence = parsed_json.get("cited_evidence", cited_evidence)
+                except Exception:
+                    if "DEFER_RARE_REVIEW" in content_str:
+                        decision = "DEFER_RARE_REVIEW"
+                        confidence = 0.85
+                        rationale = content_str[:200]
+                    elif "ACCEPT_NOMINAL" in content_str:
+                        decision = "ACCEPT_NOMINAL"
+                        confidence = 0.85
+                        rationale = content_str[:200]
         except Exception as e:
             decision = b3.decision
             confidence = float(b3.score)
