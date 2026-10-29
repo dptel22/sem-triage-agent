@@ -273,3 +273,74 @@ def test_triage_removes_baseline3_from_prompt(tmp_path):
 
     # Image must be the 3-panel strip (PNG data URL)
     assert image_content.startswith("data:image/png;base64,")
+
+
+def test_fastapi_endpoints():
+    """Smoke tests for FastAPI Metrology Command Center endpoints."""
+    from fastapi.testclient import TestClient
+    from app import app
+
+    client = TestClient(app)
+
+    # 1. Root endpoint serves index.html
+    root_resp = client.get("/")
+    assert root_resp.status_code == 200
+    assert "text/html" in root_resp.headers["content-type"]
+    assert "SEM Metrology & Triage Command Center" in root_resp.text
+
+    # 2. Preset queue returns exactly 14 items with complete metadata
+    queue_resp = client.get("/api/preset-queue")
+    assert queue_resp.status_code == 200
+    queue = queue_resp.json()
+    assert len(queue) == 14
+    sample_ids = [item["sample_id"] for item in queue]
+    assert "52b03c7a_perturbed" in sample_ids
+    assert "1bf20f9c_perturbed" in sample_ids
+    assert "0c15addf" in sample_ids
+    assert "2326638f" in sample_ids
+
+    first = queue[0]
+    for key in ("sample_id", "defect_type", "split", "resolution", "is_perturbed", "verdict"):
+        assert key in first
+
+    # 3. Image and mask endpoints stream PNG bytes
+    img_resp = client.get("/api/image/d1147ea9")
+    assert img_resp.status_code == 200
+    assert img_resp.headers["content-type"] == "image/png"
+    assert len(img_resp.content) > 0
+
+    mask_resp = client.get("/api/mask/d1147ea9")
+    assert mask_resp.status_code == 200
+    assert mask_resp.headers["content-type"] == "image/png"
+    assert len(mask_resp.content) > 0
+
+    # 4. Inspect endpoint single model & arena_both with 4-gate verification traces
+    meta_inspect = client.post("/api/inspect", json={"sample_id": "d1147ea9", "model": "muse-spark-1.3"})
+    assert meta_inspect.status_code == 200
+    meta_data = meta_inspect.json()
+    assert "gates" in meta_data
+    assert meta_data["gates"]["gate1"]["status"] == "PASS"
+    assert meta_data["gates"]["gate4"]["status"] in ("PASS", "FLAG", "REVISE")
+    assert meta_data["triage_response_id"].startswith("chatcmpl-")
+    assert len(meta_data["verbatim_rationale"]) > 0
+
+    arena_inspect = client.post("/api/inspect", json={"sample_id": "52b03c7a_perturbed", "model": "arena_both"})
+    assert arena_inspect.status_code == 200
+    arena_data = arena_inspect.json()
+    assert arena_data["model"] == "arena_both"
+    assert "meta" in arena_data
+    assert "baseten" in arena_data
+    assert arena_data["baseten"]["triage_response_id"].startswith("chatcmpl-baseten-")
+    assert arena_data["agreement"] is True
+
+    # 5. Benchmark summary comparison metrics
+    summary_resp = client.get("/api/benchmark-summary")
+    assert summary_resp.status_code == 200
+    summary = summary_resp.json()
+    assert "sharpened_10_comparison" in summary
+    comp = summary["sharpened_10_comparison"]
+    assert comp["meta"]["mIoU"] > 0.80
+    assert comp["baseten"]["mIoU"] > 0.80
+    assert comp["agreement_rate"] == 1.0
+    assert "baselines" in comp
+
