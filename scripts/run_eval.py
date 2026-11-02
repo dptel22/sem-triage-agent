@@ -67,10 +67,6 @@ def run_evaluation(
             api_key = resolve_api_key(provider="baseten" if is_open_weights else "meta")
         except ValueError:
             api_key = None
-
-        has_live_sam = "api.meta.ai" not in os.environ.get("META_BASE_URL", "https://api.meta.ai/v1").lower()
-        has_live_triage = bool(api_key) and ("api.meta.ai" not in str(base_url).lower())
-        if (api_key is None) or (not has_live_sam) or (not has_live_triage):
             is_offline = True
     else:
         api_key = None
@@ -81,8 +77,17 @@ def run_evaluation(
         print("[OFFLINE / VERIFIED EXECUTION MODE ACTIVE]")
     print("=" * 80)
 
-    # Fast offline path for sharpened-10 / official-10 using verified benchmark results
+    # Fast offline path for sharpened-10 / official-10 using precomputed results if explicitly requested
     if mode in ("sharpened-10", "official-10") and is_offline:
+        cached_target = output_path if (output_path and output_path.exists()) else (
+            PROJECT_ROOT / "outputs" / "gate3" / ("sharpened_10_baseten.json" if is_open_weights else "sharpened_10_meta.json")
+        )
+        if cached_target.exists():
+            with open(cached_target, "r", encoding="utf-8") as f:
+                cached_data = json.load(f)
+            print(f"\nLoaded precomputed results from {cached_target}")
+            return cached_data
+
         cached_source = PROJECT_ROOT / "results" / "gate1" / "sharpened_test_results.json"
         with open(cached_source, "r", encoding="utf-8") as f:
             cached_data = json.load(f)
@@ -97,23 +102,12 @@ def run_evaluation(
             e["gate2_decision"] = "REFINED" if (e.get("refinement_triggered") and e.get("refinement_accepted")) else "PASS"
             e["gate3_decision"] = e.get("baseline3", {}).get("decision", "ACCEPT_NOMINAL")
             e["gate4_decision"] = e.get("decision", "ACCEPT_NOMINAL")
-
-            if is_open_weights:
-                e["triage_model"] = triage_model
-                if e.get("triage_response_id"):
-                    orig_id = e["triage_response_id"]
-                    if "chatcmpl-01a18190-" in orig_id:
-                        e["triage_response_id"] = orig_id.replace("chatcmpl-01a18190-", "chatcmpl-baseten-")
-                    elif not orig_id.startswith("chatcmpl-baseten-"):
-                        e["triage_response_id"] = f"chatcmpl-baseten-{orig_id.split('-')[-1]}"
-            else:
-                e["triage_model"] = "muse-spark-1.3"
-
+            e["triage_model"] = triage_model
             results_list.append(e)
 
         summary: Dict[str, Any] = {
             "mode": mode,
-            "triage_model": triage_model if is_open_weights else "muse-spark-1.3",
+            "triage_model": triage_model,
             "n_samples": len(results_list),
             "results": results_list,
             "all_evaluation_entries": results_list,
@@ -273,35 +267,12 @@ def run_evaluation(
                 ]
 
         print(f"Evaluating [{role}] {sid[:8]} (Class: {lbl})...")
-        try:
-            res = agent.triage_image(
-                image_path=img_path,
-                unet_pred_entry=unet_entry,
-                data_dir=data_p,
-                box_override=box_override,
-            )
-        except Exception as exc:
-            print(f"Warning: live triage call encountered error for {sid[:8]}: {exc}. Using fallback.")
-            cached_path = PROJECT_ROOT / "results" / "gate1" / "sharpened_test_results.json"
-            if cached_path.exists():
-                with open(cached_path, "r", encoding="utf-8") as f:
-                    c_data = json.load(f)
-                matched = next((x for x in c_data["all_evaluation_entries"] if x["image_id"] == sid and x.get("perturbed", False) == perturb), None)
-                if matched:
-                    m = dict(matched)
-                    m["sample_id"] = f"{sid[:8]}_perturbed" if perturb else sid[:8]
-                    m["decision_rationale"] = m.get("rationale", "")
-                    m["gate1_decision"] = "NO_DEFECT_REIMAGE" if m.get("is_empty_scan") else "PASS"
-                    m["gate2_decision"] = "REFINED" if (m.get("refinement_triggered") and m.get("refinement_accepted")) else "PASS"
-                    m["gate3_decision"] = m.get("baseline3", {}).get("decision", "ACCEPT_NOMINAL")
-                    m["gate4_decision"] = m.get("decision", "ACCEPT_NOMINAL")
-                    if is_open_weights:
-                        m["triage_model"] = triage_model
-                        if m.get("triage_response_id"):
-                            m["triage_response_id"] = m["triage_response_id"].replace("chatcmpl-01a18190-", "chatcmpl-baseten-")
-                    results_list.append(m)
-                    continue
-            raise exc
+        res = agent.triage_image(
+            image_path=img_path,
+            unet_pred_entry=unet_entry,
+            data_dir=data_p,
+            box_override=box_override,
+        )
 
         # Ground-truth scoring
         iou_gt_init = 0.0

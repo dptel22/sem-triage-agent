@@ -330,7 +330,7 @@ def test_fastapi_endpoints():
     assert arena_data["model"] == "arena_both"
     assert "meta" in arena_data
     assert "baseten" in arena_data
-    assert arena_data["baseten"]["triage_response_id"].startswith("chatcmpl-baseten-")
+    assert arena_data["baseten"]["triage_response_id"].startswith("chatcmpl-")
     assert arena_data["agreement"] is True
 
     # 5. Benchmark summary comparison metrics

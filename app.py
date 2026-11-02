@@ -140,8 +140,6 @@ def _find_telemetry_entry(sample_id: str, model_type: str = "meta") -> Optional[
             res = dict(entry)
             if source_key == "baseten":
                 res["triage_model"] = "meta-models/muse-spark-open-1026"
-                if res.get("triage_response_id"):
-                    res["triage_response_id"] = res["triage_response_id"].replace("chatcmpl-01a18190-", "chatcmpl-baseten-")
             return res
 
     return None
@@ -153,11 +151,7 @@ def _format_verification_telemetry(raw: Dict[str, Any], requested_model: str) ->
     is_open = "open" in requested_model.lower() or "baseten" in requested_model.lower()
     triage_model = "meta-models/muse-spark-open-1026" if is_open else "muse-spark-1.3"
 
-    triage_resp_id = raw.get("triage_response_id") or "chatcmpl-01a18190-3847-70f3-ad28-3c56ee930f2e"
-    if is_open and not triage_resp_id.startswith("chatcmpl-baseten-"):
-        triage_resp_id = triage_resp_id.replace("chatcmpl-01a18190-", "chatcmpl-baseten-")
-        if not triage_resp_id.startswith("chatcmpl-baseten-"):
-            triage_resp_id = f"chatcmpl-baseten-{triage_resp_id.split('-')[-1]}"
+    triage_resp_id = raw.get("triage_response_id") or raw.get("response_id") or "chatcmpl-unknown"
 
     rationale = raw.get("rationale") or raw.get("decision_rationale") or "SEM defect inspection verified."
     init_box = raw.get("initial_box") or [100, 100, 200, 200]
