@@ -36,3 +36,5 @@ outputs
 modal_cache/
 scratch/
 .agents/
+.playwright-mcp
+
